@@ -56,5 +56,18 @@ void Session_Base::SendPacket(ybs::share::util::Buffer&& packet)
     {
         ERROR("unexpected socket disconnection! can`t send packet!");
     }
-    // m_socket.async_send();
+    int len = packet.DataSize() + sizeof(int);
+    std::string proto_head="";
+    proto_head.append((char*)&len,sizeof(int));
+
+    std::string result = proto_head + std::string(packet.View());
+    m_socket.async_send(boost::asio::buffer(result),
+    [](const boost::system::error_code& e,size_t len){
+        if (e.failed())
+        {
+            ERROR("socket async send error!");
+            return;
+        }
+    });
+
 }
