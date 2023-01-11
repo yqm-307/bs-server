@@ -1,3 +1,4 @@
+#pragma once
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/noncopyable.hpp>
@@ -5,7 +6,6 @@
 #include <vector>
 #include <map>
 #include <set>
-#pragma once
 #include <queue>
 #include <unordered_set>
 #include <unordered_map>

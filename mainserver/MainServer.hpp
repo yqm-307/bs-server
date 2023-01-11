@@ -1,3 +1,4 @@
+#pragma once
 #include "share/network/base_server.hpp"
 
 namespace MainServer

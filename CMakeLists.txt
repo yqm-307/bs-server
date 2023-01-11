@@ -9,6 +9,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17 -g ${Wall_Flag}")
 include_directories(
     ${PROJECT_SOURCE_DIR}
 )
+
+link_directories(
+    /usr/local/lib
+)
+
 message(${PROJECT_SOURCE_DIR})
 # add_subdirectory(subserver)
 add_subdirectory(mainserver)

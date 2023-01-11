@@ -1,6 +1,4 @@
-#ifndef MYSQL_PREPARED_STATEMENT_HPP_
-#define MYSQL_PREPARED_STATEMENT_HPP_
-
+#pragma once
 #include <cstddef>
 // MYSQL and MYSQL_STMT are typedefs so we have to include mysql.h.
 // Otherwise, I would just forward declare them.
@@ -52,4 +50,3 @@ class MySqlPreparedStatement {
         size_t fieldCount_;
 };
 
-#endif  // MYSQL_PREPARED_STATEMENT_HPP_

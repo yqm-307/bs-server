@@ -1,5 +1,4 @@
-#ifndef INPUTBINDER_HPP_
-#define INPUTBINDER_HPP_
+#pragma once
 
 #include <cstdint>
 #include <cstring>
@@ -178,4 +177,3 @@ void bindInputs(
         args...);
 }
 
-#endif  // INPUTBINDER_HPP_

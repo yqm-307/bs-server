@@ -1,6 +1,4 @@
-#ifndef MYSQL_HPP_
-#define MYSQL_HPP_
-
+#pragma once
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -226,4 +224,3 @@ void MySql::runQuery(
 }
 
 
-#endif  // MYSQL_HPP_

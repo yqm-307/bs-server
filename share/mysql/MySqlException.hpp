@@ -1,6 +1,4 @@
-#ifndef MY_SQL_EXCEPTION_HPP_
-#define MY_SQL_EXCEPTION_HPP_
-
+#pragma once
 #include <mysql/mysql.h>
 
 #include <exception>
@@ -28,4 +26,3 @@ class MySqlException : public std::exception {
         const std::string message_;
 };
 
-#endif  // MY_SQL_EXCEPTION_HPP_
