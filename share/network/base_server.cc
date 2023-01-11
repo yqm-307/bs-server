@@ -2,12 +2,11 @@
 
 using namespace ybs::share::network;
 
-
-
 Server_Base::Server_Base(std::string ip,int port)
     :m_context_ptr(std::make_shared<decltype(m_context_ptr)::element_type>()),
     m_server_addr(boost::asio::ip::make_address(ip),port)
 {
+    Register_Listen();
     INFO("Server Base buildOver!");
 }
 
@@ -15,6 +14,7 @@ Server_Base::Server_Base(int listenport)
     :m_context_ptr(std::make_shared<decltype(m_context_ptr)::element_type>()),
     m_server_addr(boost::asio::ip::tcp::v4(),listenport)
 {
+    Register_Listen();
     INFO("Server Base buildOver!");
 }
 
@@ -95,4 +95,13 @@ void Server_Base::OnConnection(const boost::system::error_code& e,boost::asio::i
         }
     }
 
+}
+
+
+void Server_Base::Register_Listen()
+{
+    m_acceptor = std::make_shared<decltype(m_acceptor)::element_type>(*m_context_ptr,m_server_addr,true);
+    m_acceptor->async_accept([this](const boost::system::error_code& e,boost::asio::ip::tcp::socket sock){
+        this->OnConnection(e,std::move(sock));
+    });
 }

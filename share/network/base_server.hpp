@@ -25,17 +25,18 @@ public:
     typedef int32_t SessionID;    
     Server_Base(std::string ip,int port);
     Server_Base(int listenport);
-    ~Server_Base();
+    virtual ~Server_Base();
 
     /**
      * @brief 开始事件循环
      */
-    void EventLoop();
+    virtual void EventLoop();
 
     /**
      * @brief 停止事件循环
      */
-    void StopEventLoop();
+    virtual void StopEventLoop();
+
 
 protected:
     void OnTime100ms();
@@ -59,6 +60,12 @@ protected:
      */
     void OnConnection(const boost::system::error_code& e,boost::asio::ip::tcp::socket sock);
 
+    /**
+     * @brief 注册监听事件
+     * 
+     */
+    void Register_Listen();
+
 private:
     boost::asio::ip::tcp::endpoint  m_server_addr;
     std::shared_ptr<boost::asio::io_context> m_context_ptr; 
@@ -67,7 +74,7 @@ private:
     std::mutex          m_session_lock;
     std::atomic_bool    m_stop_flag;
 
-
+    std::shared_ptr<boost::asio::ip::tcp::acceptor> m_acceptor;
     std::multimap<int,TimeOutHandler>    m_timeout_func;
 
 };
