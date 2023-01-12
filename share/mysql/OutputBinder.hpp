@@ -68,7 +68,7 @@ class Friend {
 static const char NULL_VALUE_ERROR_MESSAGE[] = \
     "Null value encountered with non-smart-pointer output type";
 
-template<int I> struct int_ {};  // Compile-time counter
+template<int I> struct int_ {static inline const int value = I;};  // Compile-time counter
 
 template<typename Tuple, int I>
 void setResultTuple(
@@ -215,12 +215,14 @@ void bindParameters(
     int_<I> i
 ) 
 {
+    bool* cnm = (bool*)malloc(1); 
+    *cnm = (*nullFlags)[int_<I>::value];
     OutputBinderParameterSetter<
         typename std::tuple_element<I, Tuple>::type
     >::setParameter(
-        &(mysqlBindParameters->at(i)),
-        &(buffers->at(i)),
-        &(nullFlags->at(i)));
+        &(mysqlBindParameters->at(int_<I>::value)),
+        &(buffers->at(int_<I>::value)),
+        cnm);
     bindParameters(
         tuple,
         mysqlBindParameters,
@@ -344,7 +346,7 @@ template <typename T>
 void OutputBinderParameterSetter<T>::setParameter(
     MYSQL_BIND* const bind,
     std::vector<char>* const buffer,
-    bool* const isNullFlag
+    bool* const  isNullFlag
 ) {
     bind->buffer_type = MYSQL_TYPE_STRING;
     if (0 == buffer->size()) {
@@ -353,6 +355,7 @@ void OutputBinderParameterSetter<T>::setParameter(
         // some truncated data, so don't mess with it.
         buffer->resize(20);
     }
+    
     bind->buffer = buffer->data();
     bind->is_null = isNullFlag;
     bind->buffer_length = buffer->size();

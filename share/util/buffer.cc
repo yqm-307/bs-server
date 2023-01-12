@@ -277,6 +277,24 @@ void Buffer::ReadString(char* ret,size_t len)
     Read(ret,len);
 }
 
+std::string Buffer::ReadCString()
+{
+    int index = 0;
+    std::string str;
+    for (size_t i=_readIndex;i<bytes.size();++i)
+    {
+        if (bytes[i] == '\0')
+        {
+            index = _readIndex;
+            break;
+        }
+        str += bytes[i];
+    }
+    char* tmp = (char*)malloc(index - _readIndex); 
+    Read(tmp,index-_readIndex);
+    free(tmp);
+}
+
 
 /*
     将数据读到vec0和vec1中，如果 inputbuffer 满了，就先暂存到缓冲区。

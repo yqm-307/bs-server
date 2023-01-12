@@ -62,6 +62,8 @@ public:
     void ReadString(std::string& str,size_t len);
     /* 从buffer读取长度为 len 的字节流，并写入 str */
     void ReadString(char* str,size_t len);
+    /* 读取一个c风格字符串,返回一个std::string字符串 */
+    std::string ReadCString();
 
     /* 返回当前数据段第一个字节的地址 */
     const char* Peek(size_t n=0) const;

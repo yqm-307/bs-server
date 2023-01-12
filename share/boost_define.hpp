@@ -20,6 +20,7 @@
 #include <functional>
 #include <atomic>
 #include <memory>
+#include <tuple>
 
 #include <stdio.h>
 #include <stdlib.h>

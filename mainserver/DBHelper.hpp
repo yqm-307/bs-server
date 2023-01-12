@@ -11,6 +11,16 @@ public:
     ~DBHelper(){}
     static DBHelper* GetInstance();
 
+
+public:
+    /*********************************************************
+     * Test Table
+     * 
+     *********************************************************/
+    std::vector<std::tuple<int,std::string,int>> Test_GetUserInfo(int userid);
+    bool Test_SetUserInfo(int userid,std::string& name,int age);
+
+
 };
 
 }
