@@ -14,7 +14,7 @@ public:
     JsonReader(const std::string& filepath)
     {
         std::ifstream ifs;
-	    ifs.open(filepath); // Windows自己注意路径吧
+	    ifs.open(filepath);
 	    assert(ifs.is_open());
 	
 	    Json::Reader reader;
