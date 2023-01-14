@@ -22,7 +22,7 @@ DBHelper::DBHelper()
         ConfigManager::GetInstance()->GetDBname()
     )
 {
-    
+    InitTable();    // 创建表结构
     INFO("mysql init success!");
 }
 
@@ -38,6 +38,7 @@ std::vector<std::tuple<int,std::string,int>> DBHelper::Test_GetUserInfo(int user
     {
         ERROR("%s",e.what());
     }   
+    return result;
     
 }
 
@@ -59,3 +60,19 @@ bool DBHelper::Test_SetUserInfo(int userid,std::string& name,int age)
     return flag;
     
 }
+
+
+std::vector<std::tuple<int,std::string>> DBHelper::User_GetUserInfo(int passport)
+{
+    std::vector<std::tuple<int,std::string>> result;
+    try
+    {   
+        this->m_sqlconn->runQuery(&result,"select passport,password from bs_db.user_info_table where user_id = ?",passport);
+    }
+    catch(const std::exception& e)
+    {
+        ERROR("%s",e.what());
+    }   
+    return result;
+}
+
