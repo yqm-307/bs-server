@@ -46,7 +46,14 @@ void Session::Handler_PassportInfoLogin(ybs::share::util::Buffer& packet)
     auto password = packet.ReadCString();
 
     // 数据库查询结果
-    auto p = DBHelper::GetInstance()->User_GetUserInfo(passport)[1];
+    auto res = DBHelper::GetInstance()->User_GetUserInfo(passport);
+    if (res.size() == 0)
+    {
+        ERROR("sql failed!");
+        return;
+    }
+
+    auto p = res[0];
 
     int pp = std::get<0>(p);
     std::string pwd= std::get<1>(p);

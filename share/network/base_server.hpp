@@ -58,8 +58,8 @@ protected:
      * @param e     状态码
      * @param sock  socket
      */
-    void OnConnection(const boost::system::error_code& e,boost::asio::ip::tcp::socket sock);
-
+    virtual void OnConnection(const boost::system::error_code& e,boost::asio::ip::tcp::socket sock);
+    void Safe_AddSession(Session_Base::SPtr session);
     /**
      * @brief 注册监听事件
      * 

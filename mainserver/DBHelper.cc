@@ -22,7 +22,13 @@ DBHelper::DBHelper()
         ConfigManager::GetInstance()->GetDBname()
     )
 {
-    InitTable();    // 创建表结构
+    try{
+        InitTable();    // 创建表结构
+    }
+    catch(MySqlException& e)
+    {
+        FATAL("%s",e.what());
+    }
     INFO("mysql init success!");
 }
 

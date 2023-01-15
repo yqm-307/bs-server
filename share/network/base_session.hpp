@@ -1,5 +1,5 @@
 #pragma once
-#include <share/boost_define.hpp>
+#include "share/boost_define.hpp"
 #include "share/util/logger.hpp"
 #include "share/util/buffer.hpp"
 #include "share/util/clock.hpp"
@@ -13,7 +13,7 @@ class Session_Base : public ybs::share::util::ClassInfo<Session_Base>
     typedef std::function<void(ybs::share::util::Buffer&)> Protocol_Handler;
 public:
     Session_Base(boost::asio::ip::tcp::socket&& socket,const int timeout_ms=3000);
-    ~Session_Base()=default;
+    ~Session_Base();
     
     /**
      * @brief 将已经去除协议头的内容部分的比特流传递给对应
@@ -36,6 +36,14 @@ public:
      */
     void Close();
 
+    /**
+     * @brief 如果是已连接状态返回true
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool IsConnected();
+
 
     /**
      * @brief 发送一条消息，比特流;注意调用该函数时，会将传入的packet
@@ -43,7 +51,8 @@ public:
      * 
      * @param packet 协议的比特流
      */
-    void SendPacket(ybs::share::util::Buffer&& packet);
+    virtual void SendPacket(ybs::share::util::Buffer&& packet);
+
     
 protected:
     /**
@@ -55,8 +64,9 @@ protected:
      *  });
      * @param list 初始化列表
      */
-    void InitHandler(std::initializer_list<std::pair<int32_t,Protocol_Handler>> list);
+    virtual void InitHandler(std::initializer_list<std::pair<int32_t,Protocol_Handler>> list);
 
+    virtual void OnRecv(const boost::system::error_code& err,size_t nbytes);
     
 private:
     std::unordered_map<int32_t,Protocol_Handler>    
@@ -67,19 +77,8 @@ private:
         m_time_out;         // 超时时间 
     boost::asio::ip::tcp::socket    
         m_socket;
+    char * const  m_recvbuffer;
+    static inline const int m_recv_size=65535; 
 };
-
-// void func()
-
-// {
-//     Session_Base base;
-//     base.InitHandler({
-//         {1,[](uint32_t,ybs::share::util::Buffer&){}},
-//         {2,[](uint32_t,ybs::share::util::Buffer&){}},
-//         {3,[](uint32_t,ybs::share::util::Buffer&){}},
-//     });
-// }
-
-
 
 }

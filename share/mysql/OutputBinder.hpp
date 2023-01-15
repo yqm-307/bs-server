@@ -215,7 +215,7 @@ void bindParameters(
     int_<I> i
 ) 
 {
-    bool* cnm = (bool*)malloc(1); 
+    bool* cnm = (bool*)malloc(sizeof(bool)); 
     *cnm = (*nullFlags)[int_<I>::value];
     OutputBinderParameterSetter<
         typename std::tuple_element<I, Tuple>::type

@@ -5,10 +5,25 @@ using namespace ybs::share::network;
 
 Session_Base::Session_Base(boost::asio::ip::tcp::socket&&sock,const int timeout_ms)
     :m_time_out(3000),
-    m_socket(std::move(sock))
+    m_socket(std::move(sock)),
+    m_recvbuffer(new char[m_recv_size])
 {
-    INFO("Session build");
+    INFO("Session connected!");
+    m_socket.async_receive(boost::asio::buffer(m_recvbuffer,m_recv_size),
+    [this](
+        const boost::system::error_code& error, // Result of operation.
+        std::size_t bytes_transferred           // Number of bytes received.
+    ){
+        OnRecv(error,bytes_transferred);
+    });
 }
+
+Session_Base::~Session_Base()
+{
+    delete[] m_recvbuffer;
+    INFO("Session delete!");
+}
+
 
 
 void Session_Base::InitHandler(std::initializer_list<std::pair<int32_t,Protocol_Handler>> list)
@@ -25,7 +40,7 @@ void Session_Base::Dispatch(int opcode,ybs::share::util::Buffer& buf)
     auto it = m_protocol_handlers.find(opcode);
     if (it == m_protocol_handlers.end())
     {
-        ERROR("can`t find this option code!");
+        ERROR("can`t find this option code! opcode: %d",opcode);
         return;
     }
     it->second(buf);
@@ -70,4 +85,39 @@ void Session_Base::SendPacket(ybs::share::util::Buffer&& packet)
         }
     });
 
+}
+
+bool Session_Base::IsConnected()
+{
+    return m_socket.is_open();
+}
+
+
+void Session_Base::OnRecv(const boost::system::error_code& err,size_t nbytes)
+{
+    ybs::share::util::Buffer tmp;
+    if (nbytes > m_recv_size)
+        ERROR("recv buffer not engry! 机制上不可能出现");
+    if (nbytes < 4)
+    {
+        ERROR("recv a bad data, because of recv bytes less then 4!");
+        return;
+    }
+    tmp.WriteString(m_recvbuffer,nbytes);    
+    int opcode = tmp.ReadInt32();
+    m_last_recv_time = ybs::share::util::clock::now<ybs::share::util::clock::ms>();
+    Dispatch(opcode,tmp);
+
+    // 重新注册
+
+    if (IsConnected())
+    {
+        m_socket.async_receive(boost::asio::buffer(m_recvbuffer,m_recv_size),
+        [this](
+            const boost::system::error_code& error, // Result of operation.
+            std::size_t bytes_transferred           // Number of bytes received.
+        ){
+            OnRecv(error,bytes_transferred);
+        });
+    }
 }

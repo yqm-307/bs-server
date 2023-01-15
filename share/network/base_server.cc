@@ -97,6 +97,17 @@ void Server_Base::OnConnection(const boost::system::error_code& e,boost::asio::i
 
 }
 
+void Server_Base::Safe_AddSession(Session_Base::SPtr session)
+{
+    std::lock_guard<std::mutex> lock(m_session_lock);
+    auto it = m_sessionmap.insert(std::make_pair(m_sessionid++, session));
+    if (it.second == false)
+    {
+        ERROR("session id is repeat!");
+    }
+}
+
+
 
 void Server_Base::Register_Listen()
 {

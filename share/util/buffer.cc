@@ -285,7 +285,7 @@ std::string Buffer::ReadCString()
     {
         if (bytes[i] == '\0')
         {
-            index = _readIndex;
+            index = i;
             break;
         }
         str += bytes[i];
@@ -293,6 +293,7 @@ std::string Buffer::ReadCString()
     char* tmp = (char*)malloc(index - _readIndex); 
     Read(tmp,index-_readIndex);
     free(tmp);
+    return str;
 }
 
 
