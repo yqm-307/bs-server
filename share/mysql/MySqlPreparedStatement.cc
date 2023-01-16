@@ -4,7 +4,7 @@
 #include <mysql/mysql.h>
 
 #include <string>
-
+#include "share/util/logger.hpp"
 #include "MySqlException.hpp"
 #include "MySqlPreparedStatement.hpp"
 
@@ -25,6 +25,7 @@ MySqlPreparedStatement::MySqlPreparedStatement(
     }
 
     const size_t length = strlen(query);
+    // INFO("run query: %s",query);
     if (0 != mysql_stmt_prepare(statementHandle_, query, length)) {
         string errorMessage(
             MySqlException::getServerErrorMessage(statementHandle_));

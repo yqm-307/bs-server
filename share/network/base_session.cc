@@ -43,6 +43,7 @@ void Session_Base::Dispatch(int opcode,ybs::share::util::Buffer& buf)
         ERROR("can`t find this option code! opcode: %d",opcode);
         return;
     }
+    DEBUG("call %d handler",opcode);
     it->second(buf);
 }
 
@@ -102,6 +103,10 @@ void Session_Base::OnRecv(const boost::system::error_code& err,size_t nbytes)
     {
         ERROR("recv a bad data, because of recv bytes less then 4!");
         return;
+    }
+    else
+    {
+        DEBUG("recv %d byte",nbytes);
     }
     tmp.WriteString(m_recvbuffer,nbytes);    
     int opcode = tmp.ReadInt32();

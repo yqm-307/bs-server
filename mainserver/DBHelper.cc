@@ -4,6 +4,9 @@
 
 using namespace MainServer;
 
+
+#define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())
+
 DBHelper* DBHelper::GetInstance()
 {
     static DBHelper* instance = nullptr;
@@ -32,13 +35,26 @@ DBHelper::DBHelper()
     INFO("mysql init success!");
 }
 
+
+void DBHelper::InitTable()
+{
+    runCommand(fmt("\
+        CREATE TABLE IF NOT EXISTS user_info_table(\
+        user_id INT UNSIGNED  AUTO_INCREMENT,\
+        passport INT,\
+        password VARCHAR(10),\
+        PRIMARY KEY ( user_id )\
+        )ENGINE=InnoDB DEFAULT CHARSET=utf8;"));
+
+    INFO("mysql table create success! table name: user_info_table");
+}
+
 std::vector<std::tuple<int,std::string,int>> DBHelper::Test_GetUserInfo(int userid)
 {
     std::vector<std::tuple<int,std::string,int>> result;
     try
     {   
-        this->m_sqlconn->runQuery(&result,"select * from test_user_info where user_id = ?",userid);
-
+        runQuery(&result,fmt("select * from test_user_info where user_id = ?",userid));
     }
     catch(const std::exception& e)
     {
@@ -56,7 +72,14 @@ bool DBHelper::Test_SetUserInfo(int userid,std::string& name,int age)
     result.push_back(ret);
     try
     {
-        this->m_sqlconn->runQuery(&result,"insert into test_user_info (user_id,name,age) values ( ? , ? , ? )",userid,name,age);
+        runQuery(&result,
+            fmt("\
+                insert into\ 
+                test_user_info\
+                (user_id,name,age)\
+                values\
+                ( %d , %s , %d )",
+            userid,name.c_str(),age));
     }
     catch(const std::exception& e)
     {
@@ -73,7 +96,7 @@ std::vector<std::tuple<int,std::string>> DBHelper::User_GetUserInfo(int passport
     std::vector<std::tuple<int,std::string>> result;
     try
     {   
-        this->m_sqlconn->runQuery(&result,"select passport,password from bs_db.user_info_table where user_id = ?",passport);
+        runQuery(&result,fmt("select passport,password from bs_db.user_info_table where passport = %d ",passport));
     }
     catch(const std::exception& e)
     {
@@ -81,4 +104,34 @@ std::vector<std::tuple<int,std::string>> DBHelper::User_GetUserInfo(int passport
     }   
     return result;
 }
+
+
+bool DBHelper::User_SetUserInfo(int passport ,std::string & password)
+{
+    auto vec = User_GetUserInfo(passport);
+    if (vec.size() != 0)
+    {// 账号已经存在
+        ERROR("passport is exists!");
+        return false;
+    }
+    if (password.size() == 0)
+    {
+        ERROR("password invalid!");
+        return false;
+    }
+
+    try{
+        runCommand(fmt("\
+        insert into bs_db.user_info_table\
+            (passport,password) values\
+            ( %d , '%s' )\
+        ",passport,password.c_str()));
+    }catch(const std::exception& e)
+    {
+        ERROR("%s",e.what());
+        return false;
+    }
+    return true;
+}
+
 

@@ -44,15 +44,50 @@ public:
     {
         delete m_sqlconn;
     }
+    
+    template<typename... Args>
+    bool runQuery(
+        std::vector<std::tuple<Args...>>* const result,
+        const char* const query
+    ) const
+    {
+        try
+        {
+            this->m_sqlconn->runQuery(result,query);
+        }
+        catch(const std::exception& e)
+        {
+            ERROR("%s",e.what());
+            return false;
+        }
+        return true;
+    }
+
+    template<typename... Args>
+    bool runCommand(const char* const query) const
+    {
+        try{
+
+        }
+        catch(const std::exception& e)
+        {
+            ERROR("%s",e.what());
+            return false;
+        }
+        return true;
+    }
+
+
 
 protected:
+
 
     std::string m_ip;
     std::string m_username;
     std::string m_password;
     std::string m_dbname;
     int         m_port{3306};
-
+private:
     MySql*      m_sqlconn;
 };
 

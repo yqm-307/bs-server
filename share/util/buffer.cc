@@ -291,7 +291,7 @@ std::string Buffer::ReadCString()
         str += bytes[i];
     }
     char* tmp = (char*)malloc(index - _readIndex); 
-    Read(tmp,index-_readIndex);
+    Read(tmp,index-_readIndex+1);   // +1意义: 把 '\0' 也读出来
     free(tmp);
     return str;
 }

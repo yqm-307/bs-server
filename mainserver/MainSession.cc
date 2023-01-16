@@ -13,11 +13,12 @@ Session::Session(boost::asio::ip::tcp::socket&& sock)
     :Session_Base(std::move(sock))
 {
     InitHandler(
-    {
-        Y_SESSION_HANDLER(1001,Test_SetUserinfo),
-        Y_SESSION_HANDLER(1002,Test_GetUserinfo),
-        Y_SESSION_HANDLER(2001,Handler_PassportInfoLogin),
-    }
+        {   
+            Y_SESSION_HANDLER(1001,Test_SetUserinfo),
+            Y_SESSION_HANDLER(1002,Test_GetUserinfo),
+            Y_SESSION_HANDLER(2001,Handler_PassportInfoLogin),      // 登录
+            Y_SESSION_HANDLER(2002,Handler_RegisterNewPassport),    // 注册
+        }
     );
 }
 
@@ -57,6 +58,7 @@ void Session::Handler_PassportInfoLogin(ybs::share::util::Buffer& packet)
 
     int pp = std::get<0>(p);
     std::string pwd= std::get<1>(p);
+    DEBUG("%d %s",pp,pwd);
     // 验证
     ybs::share::util::Buffer buff;
 
@@ -66,4 +68,33 @@ void Session::Handler_PassportInfoLogin(ybs::share::util::Buffer& packet)
         buff.WriteInt32(0);
 
     this->SendPacket(std::move(buff));
+}
+
+
+void Session::Handler_RegisterNewPassport(ybs::share::util::Buffer& packet)
+{
+    /**
+     * packet:
+     * {
+     *      int,        账号
+     *      cstring,    密码
+     * }
+     */
+
+    int passport = packet.ReadInt32();
+    auto password = packet.ReadCString();
+    DEBUG("%d %s",passport,password.c_str());
+
+    Buffer sendpck;
+
+    if (DBHelper::GetInstance()->User_SetUserInfo(passport,password))
+    {
+        sendpck.WriteInt32(1);
+    }   
+    else
+    {
+        sendpck.WriteInt32(0);
+    }
+    SendPacket(std::move(sendpck));
+
 }
