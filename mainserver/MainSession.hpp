@@ -8,8 +8,14 @@ namespace MainServer
 class Session : public ybs::share::network::Session_Base
 {
     typedef ybs::share::util::Buffer Buffer;
+    typedef std::function<void(int32_t)>   OnCloseHandler;
 public:
     Session(boost::asio::ip::tcp::socket&& sock);
+    
+    void SetId(int32_t id);
+    int32_t GetId();
+    void Register_Close(const OnCloseHandler& handler);
+    void CloseSession() ;
 private:
     void Test_SetUserinfo(ybs::share::util::Buffer& packet);
     void Test_GetUserinfo(ybs::share::util::Buffer& packet);
@@ -24,6 +30,9 @@ private:
      */
     void Handler_RegisterNewPassport(ybs::share::util::Buffer& packet);
 
+private:
+    int32_t m_session_id;
+    OnCloseHandler  m_closed_handler;
 };
 
 }

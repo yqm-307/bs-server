@@ -106,13 +106,25 @@ void Server_Base::Safe_AddSession(Session_Base::SPtr session)
         ERROR("session id is repeat!");
     }
 }
+void Server_Base::Close_Session(int32_t session_id)
+{
+    std::lock_guard<std::mutex> lock(m_session_lock);
+    m_sessionmap.erase(session_id);
+    INFO("User close connection!");
+}
 
 
 
 void Server_Base::Register_Listen()
 {
     m_acceptor = std::make_shared<decltype(m_acceptor)::element_type>(*m_context_ptr,m_server_addr,true);
-    m_acceptor->async_accept([this](const boost::system::error_code& e,boost::asio::ip::tcp::socket sock){
+    m_acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+    std::function<void(const boost::system::error_code&,
+                    boost::asio::ip::tcp::socket)> func = 
+    [this,func](const boost::system::error_code& e,boost::asio::ip::tcp::socket sock){
         this->OnConnection(e,std::move(sock));
-    });
+        this->m_acceptor->async_accept(func);
+    };
+
+    m_acceptor->async_accept(func);
 }

@@ -22,6 +22,8 @@ void Server::OnConnection(const boost::system::error_code& e,boost::asio::ip::tc
     }
 
     auto ptr = std::make_shared<Session>(std::move(sock));
-
+    ptr->Register_Close([this](int32_t id){
+        this->Close_Session(id);
+    });
     Safe_AddSession(ptr);
 }

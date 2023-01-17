@@ -29,7 +29,7 @@ public:
     std::vector<std::tuple<int,std::string>> User_GetUserInfo(int passport);
 
     // 插入一个新用户的账号信息
-    bool User_SetUserInfo(int portport ,std::string & password);
+    int User_SetUserInfo(int portport ,std::string & password);
 
 private:
     void InitTable();

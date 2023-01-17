@@ -53,6 +53,8 @@ public:
      */
     virtual void SendPacket(ybs::share::util::Buffer&& packet);
 
+
+
     
 protected:
     /**
@@ -67,6 +69,7 @@ protected:
     virtual void InitHandler(std::initializer_list<std::pair<int32_t,Protocol_Handler>> list);
 
     virtual void OnRecv(const boost::system::error_code& err,size_t nbytes);
+
     
 private:
     std::unordered_map<int32_t,Protocol_Handler>    
@@ -78,7 +81,8 @@ private:
     boost::asio::ip::tcp::socket    
         m_socket;
     char * const  m_recvbuffer;
-    static inline const int m_recv_size=65535; 
+    static inline const int m_recv_size=65535;
+
 };
 
 }

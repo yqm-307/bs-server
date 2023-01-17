@@ -38,6 +38,8 @@ public:
     virtual void StopEventLoop();
 
 
+    void Close_Session(int32_t session_id);
+
 protected:
     void OnTime100ms();
     // void OnTime1s();
@@ -65,6 +67,7 @@ protected:
      * 
      */
     void Register_Listen();
+
 
 private:
     boost::asio::ip::tcp::endpoint  m_server_addr;

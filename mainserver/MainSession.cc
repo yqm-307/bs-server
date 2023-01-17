@@ -86,15 +86,29 @@ void Session::Handler_RegisterNewPassport(ybs::share::util::Buffer& packet)
     DEBUG("%d %s",passport,password.c_str());
 
     Buffer sendpck;
-
-    if (DBHelper::GetInstance()->User_SetUserInfo(passport,password))
-    {
-        sendpck.WriteInt32(1);
-    }   
-    else
-    {
-        sendpck.WriteInt32(0);
-    }
+    sendpck.WriteInt32(DBHelper::GetInstance()->User_SetUserInfo(passport,password));   // 返回注册结果
     SendPacket(std::move(sendpck));
 
+}
+
+
+void Session::SetId(int32_t id)
+{
+    m_session_id = id;
+}
+int32_t Session::GetId()
+{
+    return m_session_id;
+}
+
+void Session::Register_Close(const OnCloseHandler& handler)
+{
+    m_closed_handler = handler;
+}
+
+void Session::CloseSession()
+{
+    Close();
+    if (m_closed_handler)
+        m_closed_handler(m_session_id);
 }

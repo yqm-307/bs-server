@@ -106,18 +106,19 @@ std::vector<std::tuple<int,std::string>> DBHelper::User_GetUserInfo(int passport
 }
 
 
-bool DBHelper::User_SetUserInfo(int passport ,std::string & password)
+int DBHelper::User_SetUserInfo(int passport ,std::string & password)
 {
     auto vec = User_GetUserInfo(passport);
     if (vec.size() != 0)
     {// 账号已经存在
         ERROR("passport is exists!");
-        return false;
+        return 2;
     }
     if (password.size() == 0)
     {
+        // 密码非法
         ERROR("password invalid!");
-        return false;
+        return 3;
     }
 
     try{
@@ -128,10 +129,11 @@ bool DBHelper::User_SetUserInfo(int passport ,std::string & password)
         ",passport,password.c_str()));
     }catch(const std::exception& e)
     {
+        // sql执行失败
         ERROR("%s",e.what());
-        return false;
+        return 4;
     }
-    return true;
+    return 1;
 }
 
 

@@ -84,6 +84,9 @@ void Session_Base::SendPacket(ybs::share::util::Buffer&& packet)
             ERROR("socket async send error!");
             return;
         }
+        else{
+            INFO("send %u byte",len);
+        }
     });
 
 }
@@ -99,9 +102,15 @@ void Session_Base::OnRecv(const boost::system::error_code& err,size_t nbytes)
     ybs::share::util::Buffer tmp;
     if (nbytes > m_recv_size)
         ERROR("recv buffer not engry! 机制上不可能出现");
-    if (nbytes < 4)
+    if (nbytes < 4 && nbytes != 0)
     {
         ERROR("recv a bad data, because of recv bytes less then 4!");
+        return;
+    }
+    else if(nbytes == 0)
+    {
+        ERROR("peer socket closed!");
+        Close();
         return;
     }
     else
@@ -126,3 +135,5 @@ void Session_Base::OnRecv(const boost::system::error_code& err,size_t nbytes)
         });
     }
 }
+
+
