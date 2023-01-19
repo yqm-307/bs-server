@@ -3,10 +3,11 @@
 using namespace ybs::share::network;
 
 
-Session_Base::Session_Base(boost::asio::ip::tcp::socket&&sock,const int timeout_ms)
+Session_Base::Session_Base(boost::asio::io_context& ioc,boost::asio::ip::tcp::socket&&sock,const int timeout_ms)
     :m_time_out(3000),
     m_socket(std::move(sock)),
-    m_recvbuffer(new char[m_recv_size])
+    m_recvbuffer(new char[m_recv_size]),
+    m_ioc(ioc)
 {
     INFO("Session connected!");
     m_socket.async_receive(boost::asio::buffer(m_recvbuffer,m_recv_size),
@@ -58,6 +59,11 @@ bool Session_Base::IS_TimeOut()
     return false;
 }
 
+void Session_Base::Update()
+{
+    m_last_recv_time = ybs::share::util::clock::now<ybs::share::util::clock::ms>();
+}
+
 
 void Session_Base::Close()
 {
@@ -65,6 +71,10 @@ void Session_Base::Close()
     INFO("Session is closed!");
 }
 
+boost::asio::io_context& Session_Base::GetIOC()
+{
+    return m_ioc;
+}
 
 void Session_Base::SendPacket(ybs::share::util::Buffer&& packet)
 {
@@ -119,8 +129,8 @@ void Session_Base::OnRecv(const boost::system::error_code& err,size_t nbytes)
     }
     tmp.WriteString(m_recvbuffer,nbytes);    
     int opcode = tmp.ReadInt32();
-    m_last_recv_time = ybs::share::util::clock::now<ybs::share::util::clock::ms>();
     Dispatch(opcode,tmp);
+    Update();
 
     // 重新注册
 
@@ -137,3 +147,8 @@ void Session_Base::OnRecv(const boost::system::error_code& err,size_t nbytes)
 }
 
 
+void Session_Base::Handler_HeartBeat(ybs::share::util::Buffer& buffer)
+{
+    uint64_t tsp= buffer.ReadInt64();
+
+}

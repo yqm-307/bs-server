@@ -1,4 +1,4 @@
-#include "MainSession.hpp"
+#include "mainserver/MainSession.hpp"
 
 
 using namespace MainServer;
@@ -9,8 +9,8 @@ using namespace MainServer;
 }
 
 
-Session::Session(boost::asio::ip::tcp::socket&& sock)
-    :Session_Base(std::move(sock))
+Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock)
+    :Session_Base(ioc,std::move(sock))
 {
     InitHandler(
         {   
@@ -56,9 +56,9 @@ void Session::Handler_PassportInfoLogin(ybs::share::util::Buffer& packet)
 
     auto p = res[0];
 
-    int pp = std::get<0>(p);
-    std::string pwd= std::get<1>(p);
-    DEBUG("%d %s",pp,pwd);
+    int user_id = std::get<0>(p);
+    int pp = std::get<1>(p);
+    std::string pwd= std::get<2>(p);
     // 验证
     ybs::share::util::Buffer buff;
 
@@ -67,6 +67,7 @@ void Session::Handler_PassportInfoLogin(ybs::share::util::Buffer& packet)
     else
         buff.WriteInt32(0);
 
+    buff.WriteInt32(user_id);
     this->SendPacket(std::move(buff));
 }
 

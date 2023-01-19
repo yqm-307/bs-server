@@ -1,8 +1,8 @@
-#include "mainserver/DBHelper.hpp"
-#include "mainserver/ConfigManager.hpp"
+#include "subserver/DBHelper.hpp"
+#include "subserver/ConfigManager.hpp"
 
 
-using namespace MainServer;
+using namespace SubServer;
 
 
 #define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())

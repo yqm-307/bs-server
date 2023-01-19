@@ -46,12 +46,6 @@ protected:
     // void OnTime10s();
     void SessionTimeoutTimer(const boost::system::error_code& e);
     
-    /**
-     * @brief 初始化定时任务，pair中first是触发间隔，second是触发事件。
-     * 
-     * @param list 
-     */
-    // void InitTimeEvent(std::initializer_list<std::pair<int,TimeOutHandler>> list);
 protected:
 
     /**
@@ -61,7 +55,14 @@ protected:
      * @param sock  socket
      */
     virtual void OnConnection(const boost::system::error_code& e,boost::asio::ip::tcp::socket sock);
+    
+    /**
+     * @brief 安全的添加一个session
+     * 
+     * @param session 
+     */
     void Safe_AddSession(Session_Base::SPtr session);
+    
     /**
      * @brief 注册监听事件
      * 
@@ -69,9 +70,9 @@ protected:
     void Register_Listen();
 
 
+    std::shared_ptr<boost::asio::io_context> m_context_ptr; 
 private:
     boost::asio::ip::tcp::endpoint  m_server_addr;
-    std::shared_ptr<boost::asio::io_context> m_context_ptr; 
     std::map<SessionID,Session_Base::SPtr>  m_sessionmap;   // 所有session
     int32_t     m_sessionid{10001};
     std::mutex          m_session_lock;
@@ -79,6 +80,7 @@ private:
 
     std::shared_ptr<boost::asio::ip::tcp::acceptor> m_acceptor;
     std::multimap<int,TimeOutHandler>    m_timeout_func;
+    boost::asio::steady_timer           m_timer;
 
 };
 

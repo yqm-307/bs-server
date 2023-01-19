@@ -4,15 +4,18 @@ using namespace ybs::share::network;
 
 Server_Base::Server_Base(std::string ip,int port)
     :m_context_ptr(std::make_shared<decltype(m_context_ptr)::element_type>()),
-    m_server_addr(boost::asio::ip::make_address(ip),port)
+    m_server_addr(boost::asio::ip::make_address(ip),port),
+    m_timer(*m_context_ptr,boost::asio::chrono::milliseconds(100))
 {
+    m_timer.async_wait([this](const boost::system::error_code& e){SessionTimeoutTimer(e);});
     Register_Listen();
     INFO("Server Base buildOver!");
 }
 
 Server_Base::Server_Base(int listenport)
     :m_context_ptr(std::make_shared<decltype(m_context_ptr)::element_type>()),
-    m_server_addr(boost::asio::ip::tcp::v4(),listenport)
+    m_server_addr(boost::asio::ip::tcp::v4(),listenport),
+    m_timer(*m_context_ptr,boost::asio::chrono::milliseconds(100))
 {
     Register_Listen();
     INFO("Server Base buildOver!");
@@ -84,7 +87,7 @@ void Server_Base::OnConnection(const boost::system::error_code& e,boost::asio::i
         ERROR("on connection failed!");
     }
 
-    auto ptr = std::make_shared<Session_Base>(std::move(sock));
+    auto ptr = std::make_shared<Session_Base>(*m_context_ptr,std::move(sock));
     
     {
         std::lock_guard<std::mutex> lock(m_session_lock);
@@ -117,14 +120,15 @@ void Server_Base::Close_Session(int32_t session_id)
 
 void Server_Base::Register_Listen()
 {
+
     m_acceptor = std::make_shared<decltype(m_acceptor)::element_type>(*m_context_ptr,m_server_addr,true);
     m_acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    std::function<void(const boost::system::error_code&,
+    static std::function<void(const boost::system::error_code&,
                     boost::asio::ip::tcp::socket)> func = 
-    [this,func](const boost::system::error_code& e,boost::asio::ip::tcp::socket sock){
+    [this](const boost::system::error_code& e,boost::asio::ip::tcp::socket sock){
         this->OnConnection(e,std::move(sock));
         this->m_acceptor->async_accept(func);
     };
-
+    // 注册异步accept
     m_acceptor->async_accept(func);
 }

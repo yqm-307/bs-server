@@ -1,6 +1,6 @@
 #pragma once
 #include "share/network/base_session.hpp"
-#include "DBHelper.hpp"
+#include "mainserver/DBHelper.hpp"
 
 namespace MainServer
 {
@@ -10,7 +10,7 @@ class Session : public ybs::share::network::Session_Base
     typedef ybs::share::util::Buffer Buffer;
     typedef std::function<void(int32_t)>   OnCloseHandler;
 public:
-    Session(boost::asio::ip::tcp::socket&& sock);
+    Session(boost::asio::io_context& ioc,boost::asio::ip::tcp::socket&& sock);
     
     void SetId(int32_t id);
     int32_t GetId();

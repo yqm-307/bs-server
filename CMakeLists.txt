@@ -15,5 +15,6 @@ link_directories(
 )
 
 message(${PROJECT_SOURCE_DIR})
-# add_subdirectory(subserver)
 add_subdirectory(mainserver)
+
+add_subdirectory(subserver)

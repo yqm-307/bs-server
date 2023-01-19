@@ -1,6 +1,6 @@
-#include "mainserver/MainServer.hpp"
-#include "mainserver/DBHelper.hpp"
-using namespace MainServer;
+#include "subserver/Server.hpp"
+#include "subserver/DBHelper.hpp"
+using namespace SubServer;
 
 
 

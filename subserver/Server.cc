@@ -1,6 +1,6 @@
-#include "mainserver/MainServer.hpp"
-#include "mainserver/MainSession.hpp"
-using namespace MainServer;
+#include "subserver/Server.hpp"
+#include "subserver/Session.hpp"
+using namespace SubServer;
 
 Server::Server(const std::string& ip,int port)
     :Server_Base(ip,port)

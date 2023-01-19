@@ -12,7 +12,7 @@ class Session_Base : public ybs::share::util::ClassInfo<Session_Base>
 {
     typedef std::function<void(ybs::share::util::Buffer&)> Protocol_Handler;
 public:
-    Session_Base(boost::asio::ip::tcp::socket&& socket,const int timeout_ms=3000);
+    Session_Base(boost::asio::io_context& ioc,boost::asio::ip::tcp::socket&& socket,const int timeout_ms=3000);
     ~Session_Base();
     
     /**
@@ -66,12 +66,32 @@ protected:
      *  });
      * @param list 初始化列表
      */
-    virtual void InitHandler(std::initializer_list<std::pair<int32_t,Protocol_Handler>> list);
+    virtual void InitHandler(std::initializer_list<std::pair<int32_t,Protocol_Handler>> list) final;
 
+    /**
+     * @brief 如果使用默认的，就是用base类的buffer。如果需要重写，就需要
+     *  使用派生类的缓冲区，并且需要拆包并dispatch
+     * 
+     * @param err 
+     * @param nbytes 
+     */
     virtual void OnRecv(const boost::system::error_code& err,size_t nbytes);
-
     
+    /**
+     * @brief 心跳包 
+     */
+    virtual void Handler_HeartBeat(ybs::share::util::Buffer& buffer) final;
+
+    /**
+     * @brief 更新超时时间
+     */
+    void Update();
+
+    boost::asio::io_context& GetIOC();
+    
+
 private:
+    boost::asio::io_context& m_ioc;
     std::unordered_map<int32_t,Protocol_Handler>    
         m_protocol_handlers;
     ybs::share::util::clock::Timestamp<ybs::share::util::clock::ms>
