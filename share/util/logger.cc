@@ -260,6 +260,26 @@ void Logger::Log(LOGLEVEL level ,const std::string str)
     
 #ifdef LOG_STDOUT 
     std::string line;
+
+    switch (level)
+    {
+    case LOGLEVEL::LOG_TRACE :
+    case LOGLEVEL::LOG_DEBUG :
+        line = format("\033[0m\033[1;35m%s\033[0m",log);
+        break;
+    case LOGLEVEL::LOG_INFO :
+        line = format("\033[0m\033[1;36m%s\033[0m",log);
+        break;
+    case LOGLEVEL::LOG_WARN :
+        line = format("\033[0m\033[1;33m%s\033[0m",log);
+        break;
+    case LOGLEVEL::LOG_ERROR :
+    case LOGLEVEL::LOG_FATAL :
+        line = format("\033[0m\033[1;31m%s\033[0m",log);
+        break;
+    default:
+        break;
+    }
     if (level <= LOGLEVEL::LOG_INFO)
         line = format("\033[0m\033[1;36m%s\033[0m",log);
     else

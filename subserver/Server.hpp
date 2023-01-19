@@ -11,6 +11,7 @@ public:
     Server(int port);   
     virtual void OnConnection(const boost::system::error_code& e,boost::asio::ip::tcp::socket sock) override;
 private:
+    virtual void Connect(std::string ip,int port);
 
 };
 

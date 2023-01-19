@@ -1,5 +1,5 @@
 #include "subserver/Session.hpp"
-
+#include "share/util/cmd.hpp"
 
 using namespace SubServer;
 
@@ -62,4 +62,10 @@ void Session::CloseSession()
 
 void Session::Handler_Timer_SendToMain_ServerInfo()
 {
+    ybs::share::util::Buffer pck;
+
+    auto str = ybs::share::util::cutil::executeCMD("uname -a");
+    DEBUG("%s",str.c_str());
+
+    
 }
