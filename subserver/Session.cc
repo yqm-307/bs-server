@@ -60,6 +60,7 @@ void Session::CloseSession()
  ********************************************
 */
 
+
 void Session::Handler_Timer_SendToMain_ServerInfo()
 {
     ybs::share::util::Buffer pck;
@@ -68,4 +69,12 @@ void Session::Handler_Timer_SendToMain_ServerInfo()
     DEBUG("%s",str.c_str());
 
     
+}
+
+
+void Session::Handler_Client_Ping_SubServer(ybs::share::util::Buffer& buf)
+{
+    ybs::share::util::Buffer pck;
+    pck.WriteInt32(1);
+    SendPacket(std::move(pck));
 }
