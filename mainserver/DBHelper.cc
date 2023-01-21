@@ -38,13 +38,38 @@ DBHelper::DBHelper()
 
 void DBHelper::InitTable()
 {
+    // user_info_table
     runCommand(fmt("\
-        CREATE TABLE IF NOT EXISTS user_info_table(\
+        CREATE TABLE IF NOT EXISTS bs_db.user_info_table(\
         user_id INT UNSIGNED  AUTO_INCREMENT,\
         passport INT,\
         password VARCHAR(10),\
+        qx_level INT,\
+        group_id INT,\
+        group_type INT,\
         PRIMARY KEY ( user_id )\
-        )ENGINE=InnoDB DEFAULT CHARSET=utf8;"));
+        )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+        "));
+
+    // server_info_table
+    runCommand(fmt("\
+        CREATE TABLE IF NOT EXISTS bs_db.server_info_table(\
+        user_id INT UNSIGNED,\
+        server_id INT UNSIGNED,\
+        server_ip VARCHAR(30),\
+        server_port INT UNSIGNED,\
+        server_level INT,\
+        flag_ufw INT,\
+        linux_username VARCHAR(255),\
+        linux_pwd VARCHAR(255),\
+        open_port MEDIUMTEXT,\
+        server_info MEDIUMTEXT,\
+        last_update_time BIGINT UNSIGNED,\
+        ssh_publickey TEXT,\
+        PRIMARY KEY ( user_id )\
+        )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+    "));
+
 
     INFO("mysql table create success! table name: user_info_table");
 }

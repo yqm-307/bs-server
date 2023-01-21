@@ -30,6 +30,7 @@ private:
      */
     void Handler_RegisterNewPassport(ybs::share::util::Buffer& packet);
 
+    void Handler_AddServerInfo(ybs::share::util::Buffer& packet);
 private:
     int32_t m_session_id;
     OnCloseHandler  m_closed_handler;

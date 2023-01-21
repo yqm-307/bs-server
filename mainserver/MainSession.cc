@@ -24,6 +24,29 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
 
 
 
+void Session::SetId(int32_t id)
+{
+    m_session_id = id;
+}
+int32_t Session::GetId()
+{
+    return m_session_id;
+}
+
+void Session::Register_Close(const OnCloseHandler& handler)
+{
+    m_closed_handler = handler;
+}
+
+void Session::CloseSession()
+{
+    Close();
+    if (m_closed_handler)
+        m_closed_handler(m_session_id);
+}
+
+
+
 void Session::Test_SetUserinfo(ybs::share::util::Buffer &packet)
 {
     int userid = packet.ReadInt32();
@@ -93,23 +116,22 @@ void Session::Handler_RegisterNewPassport(ybs::share::util::Buffer& packet)
 }
 
 
-void Session::SetId(int32_t id)
+void Session::Handler_AddServerInfo(ybs::share::util::Buffer& packet)
 {
-    m_session_id = id;
-}
-int32_t Session::GetId()
-{
-    return m_session_id;
+    // 解包
+    int user_id = packet.ReadInt32();
+    int serverid = packet.ReadInt32();
+    std::string server_ip = packet.ReadCString();
+    int server_port = packet.ReadInt32();
+    int server_level = packet.ReadInt32();
+    bool flag_firewall = bool(packet.ReadInt32());
+    std::string linux_username = packet.ReadCString();
+    std::string linux_pwd = packet.ReadCString();
+
+    // 读数据库,检测是否有id冲突问题
+    
+    
+
+
 }
 
-void Session::Register_Close(const OnCloseHandler& handler)
-{
-    m_closed_handler = handler;
-}
-
-void Session::CloseSession()
-{
-    Close();
-    if (m_closed_handler)
-        m_closed_handler(m_session_id);
-}

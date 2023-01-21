@@ -31,6 +31,14 @@ public:
     // 插入一个新用户的账号信息
     int User_SetUserInfo(int portport ,std::string & password);
 
+    /*********************************************************
+     * server info Table
+     * 
+     *********************************************************/
+    
+
+
+
 private:
     void InitTable();
 

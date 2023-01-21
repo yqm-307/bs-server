@@ -15,7 +15,7 @@ Session::Session(boost::asio::io_context& ioc,boost::asio::ip::tcp::socket&& soc
 {
     InitHandler(
         {   
-            
+            Y_SESSION_HANDLER(3001,Handler_Client_Ping_SubServer)
         }
     );
 }

@@ -67,7 +67,7 @@ public:
     bool runCommand(const char* const query) const
     {
         try{
-
+            this->m_sqlconn->runCommand(query);
         }
         catch(const std::exception& e)
         {
