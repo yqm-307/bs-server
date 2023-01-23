@@ -221,7 +221,7 @@ bool Buffer::WriteInt8(int8_t num)
     memcpy(buf,&num,1);
     return Write(buf,sizeof(buf));
 }
-bool Buffer::WriteString(std::string str)
+bool Buffer::WriteString(const std::string& str)
 {
     char buf[str.size()];
     memcpy(buf,str.c_str(),str.size());

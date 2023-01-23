@@ -15,7 +15,7 @@ Session::Session(boost::asio::io_context& ioc,boost::asio::ip::tcp::socket&& soc
 {
     InitHandler(
         {   
-            Y_SESSION_HANDLER(3001,Handler_Client_Ping_SubServer)
+            Y_SESSION_HANDLER(4001,Handler_Client_Ping_SubServer)
         }
     );
 }
@@ -75,6 +75,6 @@ void Session::Handler_Timer_SendToMain_ServerInfo()
 void Session::Handler_Client_Ping_SubServer(ybs::share::util::Buffer& buf)
 {
     ybs::share::util::Buffer pck;
-    pck.WriteInt32(1);
+    pck.WriteInt32(1);  // 收到这个包，直接回复1 就行
     SendPacket(std::move(pck));
 }

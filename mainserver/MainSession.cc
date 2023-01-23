@@ -18,6 +18,7 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(1002,Test_GetUserinfo),
             Y_SESSION_HANDLER(2001,Handler_PassportInfoLogin),      // 登录
             Y_SESSION_HANDLER(2002,Handler_RegisterNewPassport),    // 注册
+            Y_SESSION_HANDLER(3002,Handler_AddServerInfo),          // 添加服务器
         }
     );
 }
@@ -128,10 +129,44 @@ void Session::Handler_AddServerInfo(ybs::share::util::Buffer& packet)
     std::string linux_username = packet.ReadCString();
     std::string linux_pwd = packet.ReadCString();
 
+    Buffer pck;
     // 读数据库,检测是否有id冲突问题
-    
-    
+    switch (DBHelper::GetInstance()->Server_UIDANDSID_Is_Repeat(user_id,serverid))
+    {
+    case 1:
+        pck.WriteInt32(1);
+        pck.WriteString("服务器错误:sql查询失败");
+        break;
+    case 2:
+        pck.WriteInt32(2);
+        pck.WriteString("user id错误, 该user不存在");
+        break;
+        
+    case 3:
+        pck.WriteInt32(1);
+        pck.WriteString("server id重复,请更换server id");
+        break;
+            
+    default:
+        pck.WriteInt32(0);
+        if (!DBHelper::GetInstance()->Server_AddNewServerInfo(
+            user_id,
+            serverid,
+            server_ip,
+            server_port,
+            server_level,
+            flag_firewall,
+            linux_username,
+            linux_pwd
+        ))
+        {
+            pck.WriteString("插入失败,请查看服务器日志");
+        }
+        else
+            pck.WriteString("插入成功");
+        
+    }
 
-
+    SendPacket(std::move(pck));
 }
 

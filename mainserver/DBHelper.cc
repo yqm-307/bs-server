@@ -6,6 +6,9 @@ using namespace MainServer;
 
 
 #define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())
+#define ResultType(...) std::vector<std::tuple<##__VA_ARGS__>>
+
+
 
 DBHelper* DBHelper::GetInstance()
 {
@@ -65,6 +68,7 @@ void DBHelper::InitTable()
         open_port MEDIUMTEXT,\
         server_info MEDIUMTEXT,\
         last_update_time BIGINT UNSIGNED,\
+        ssh_flag INT UNSIGNED,\
         ssh_publickey TEXT,\
         PRIMARY KEY ( user_id )\
         )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
@@ -162,3 +166,78 @@ int DBHelper::User_SetUserInfo(int passport ,std::string & password)
 }
 
 
+int DBHelper::Server_UIDANDSID_Is_Repeat(int uid,int sid)
+{
+    // ResultType(int,int) resutlt1;
+    int ret=0;
+    do
+    {
+        QueryResult<int,int>   r1;
+        QueryResult<int> r2;
+        // user 是否存在
+        if (!runQuery(&r2,fmt("\
+            select user_id from \
+            bs_db.user_info_table\ 
+            where user_id = %d",uid)))
+        {
+            ERROR("select failed!");
+            ret = 1;
+            break;
+        }
+        if (r2.size() == 0)
+        {
+            ret = 2;
+            break;
+        }
+        if (!runQuery(&r1,fmt("\
+            select user_id,server_id\
+            from bs_db.server_info_table\
+            where user_id = %d",uid,sid)))
+        {
+            ERROR("select failed!");
+            ret = 1;    // sql失败
+            break;
+        }
+
+        for (auto && i : r1)
+        {   // sid 是否重复
+            if (std::get<1>(i) == sid)
+            {
+                ret = 3;
+                break;
+            }
+        }
+    } while (0);
+    return ret;
+}
+
+bool DBHelper::Server_AddNewServerInfo(
+    uint32_t user_id,
+    uint32_t server_id,
+    const std::string &server_ip,
+    uint32_t server_port,
+    int32_t server_level,
+    int32_t flag_ufw,
+    const std::string &username,
+    const std::string &pwd)
+{
+    if (!runCommand(fmt("\
+        insert into bs_db.server_info_table \
+        (user_id,server_id,server_ip,server_port,server_level,flag_ufw,linux_username,linux_pwd)\
+        values\
+        (%u,%u,\"%s\",%u,%d,%d,\"%s\",\"%s\")\
+    ",
+    user_id,
+    server_id,
+    server_ip.c_str(),
+    server_port,
+    server_level,
+    flag_ufw,
+    username.c_str(),
+    pwd.c_str())))
+    {
+        ERROR("insert error!");
+        return false;
+    }
+    return true;
+}

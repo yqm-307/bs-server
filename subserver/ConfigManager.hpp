@@ -22,9 +22,13 @@ public:
         }
         return ptr;
     }
+    
     std::string GetDBIP()
     { return Json()["db"]["ip"].asString(); }
 
+    int GetPort()
+    { return Json()["db"]["port"].asInt(); }
+    
     std::string GetDBUsername()
     { return Json()["db"]["username"].asString(); }
 

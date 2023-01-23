@@ -46,7 +46,7 @@ public:
     /* 将num作为比特流写入buffer */
     bool WriteInt8(int8_t num);
     /* 将str作为字节流写入 buffer */
-    bool WriteString(std::string str);
+    bool WriteString(const std::string& str);
     /* 将str作为字节流写入 buffer*/
     bool WriteString(const char* p ,size_t len);
 

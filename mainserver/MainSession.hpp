@@ -30,6 +30,9 @@ private:
      */
     void Handler_RegisterNewPassport(ybs::share::util::Buffer& packet);
 
+    /**
+     * @brief 添加一个服务器的信息
+     */
     void Handler_AddServerInfo(ybs::share::util::Buffer& packet);
 private:
     int32_t m_session_id;

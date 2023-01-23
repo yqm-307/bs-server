@@ -42,8 +42,6 @@ public:
 
 protected:
     void OnTime100ms();
-    // void OnTime1s();
-    // void OnTime10s();
     void SessionTimeoutTimer(const boost::system::error_code& e);
     
 protected:
