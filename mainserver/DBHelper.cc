@@ -74,6 +74,15 @@ void DBHelper::InitTable()
         )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
     "));
 
+    
+    runCommand(fmt("\
+        CREATE TABLE IF NOT EXISTS bs_db.server_updata_table(\
+        server_id INT UNSIGNED,\
+        linux_sys_info TEXT,\
+        cpu_info TEXT,\
+        )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+    "));
+
 
     INFO("mysql table create success! table name: user_info_table");
 }

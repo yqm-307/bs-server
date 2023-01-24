@@ -8,7 +8,7 @@ class ConfigManager: ybs::share::util::JsonReader
 {
 public:
     ConfigManager()
-        :JsonReader("mainconfig.json")
+        :JsonReader("subconfig.json")
     {
     }
     ~ConfigManager()=default;

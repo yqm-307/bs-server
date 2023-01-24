@@ -77,5 +77,6 @@ void Server::Connect(std::string ip,int port)
 
 void Server::SendServerInfoToMainServer()
 {
+    // 去数据库写
     
 }

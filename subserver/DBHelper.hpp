@@ -13,23 +13,8 @@ public:
 
 
 public:
-    /*********************************************************
-     * Test Table
-     * 
-     *********************************************************/
-    std::vector<std::tuple<int,std::string,int>> Test_GetUserInfo(int userid);
-    bool Test_SetUserInfo(int userid,std::string& name,int age);
-
-
-    /*********************************************************
-     * User Table
-     * 
-     *********************************************************/
-    // 根据账号查询用户信息
-    std::vector<std::tuple<int,int,std::string>> User_GetUserInfo(int passport);
-
-    // 插入一个新用户的账号信息
-    int User_SetUserInfo(int portport ,std::string & password);
+    // 向数据库中写入 server 当前状态
+    void SetServerInfo();
 
 private:
     void InitTable();
