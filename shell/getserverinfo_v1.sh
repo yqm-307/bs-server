@@ -7,15 +7,41 @@ system_hostname=$(hostname | awk '{print $1}')
  
 #获取服务器IP
 system_ip=$(hostname -I| awk '{print $1}')
- 
+
+#服务器版本
+system_info=$(uname -srm)
+
+#CPU信息
+cpu_info=$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c)
+cpu_core_count=$(echo $cpu_info | awk '{ print $1 }')
+cpu_cs=$(echo $cpu_info | awk '{ print $2 }')
+cpu_xh=$(echo $cpu_info | awk '{ print $4 }')
+cpu_core_pl=$(echo $cpu_info | awk '{ print $7 }')
+
+
+
+#CPU使用率
+cpu_used=$(top -b -n1 | fgrep "Cpu(s)" | tail -1 | awk -F'id,'  \
+    '{\
+        split($1, vs, ",");\
+        v=vs[length(vs)];\
+        sub(/\s+/, "", v);\
+        sub(/\s+/, "", v);\ 
+        printf "%s%%", 100-v; \
+    }')
+
+# echo '#!' `free -m | sed -n '2p' | awk '{ print "Mem total is: "$2" MB"}'`
+
+# echo     `free -m | sed -n '2p' | awk '{ print "Mem used  is: "$3/$2%10*100"%"}'`
+
 #获取总内存
-mem_total=$(free -m | grep Mem| awk -F " " '{print $2}')
+mem_total=$(free -m | sed -n '2p'|  awk '{ print $2 }')
  
 #获取剩余内存
-mem_free=$(free -m | grep "Mem" | awk '{print $4}')
+mem_free=$(free -m | sed -n '2p' | awk '{ print $4 }')
  
 #获取已用内存
-mem_use=$(free -m | grep Mem| awk -F " " '{print $2-$4-$6}')
+mem_use=$(free -m | sed -n '2p' | awk '{ print $3 }')
  
 #系统进程数
 load_1=`ps -ef |wc -l`
@@ -51,11 +77,11 @@ if [[ $disk_ux -gt 60 ]]
      fi
 #文件路径
 CHECK_HOME="$(cd "`dirname "$0"`"; pwd)"
-path="$CHECK_HOME"/monitor_system_check_"$time_file".txt
+
  
 #内存阈值
 mem_mo='70'
- PERCENT=$(printf "%d%%" $(($mem_use*100/$mem_total)))
+ PERCENT=$(free -m | sed -n '2p' | awk '{ print ""$3/$2%10*100"%"}')
  PERCENT_1=$(echo $PERCENT|sed 's/%//g')
  if [[ $PERCENT_1 -gt $mem_mo ]]
      then
@@ -69,8 +95,26 @@ mem_mo='70'
       mem_status_per=$PERCENT
       mem_status=正常
  fi
- 
-if [[ ! -s $path ]] || [[ `grep 统计时间 $path|wc -l` -eq 0 ]];then 
-echo -e  "统计时间 服务器IP 系统进程数 CPU空闲id 僵尸进程数 总内存大小 已用内存 内存使用率 内存巡检状态 分区 数据盘总空间 数据盘剩余空间 数据盘磁盘使用率 磁盘超60使用分区 磁盘超60使用率 磁盘状况" >> $path
-fi
-echo -e  "$time_day $system_ip $load_1 $load_15 $load_5 $mem_status_total $mem_status_use $mem_status_per $mem_status $disk_f $disk_total $disk_free $disk_per $disk_f_60 $disk_per_60 $disk_status" >> $path
+
+echo -e "统计时间|$time_day"
+echo -e "服务器IP|$system_ip"
+echo -e "服务器信息|$system_info"
+echo -e "cpu核心数|$cpu_core_count"
+echo -e "cpu厂商|$cpu_cs"
+echo -e "cpu型号|$cpu_xh"
+echo -e "cpu核心频率|$cpu_core_pl"
+echo -e "cpu占有率|$cpu_used"
+echo -e "系统进程数|$load_1"
+echo -e "cpu空闲id|$load_15"
+echo -e "僵尸进程数|$load_5"
+echo -e "总内存大小|$mem_status_total"
+echo -e "已用内存|$mem_status_use"
+echo -e "内存使用率|$mem_status_per"
+echo -e "内存巡检状态|$mem_status"
+echo -e "数据盘总空间|$disk_total"
+echo -e "数据盘剩余空间|$disk_free"
+echo -e "数据盘磁盘使用率|$disk_per"
+echo -e "磁盘超60使用分区|$disk_f_60"
+echo -e "磁盘超60使用率|$disk_per_60" 
+echo -e "磁盘状况|$disk_status"
+     

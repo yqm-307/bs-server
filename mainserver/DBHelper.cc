@@ -250,3 +250,25 @@ bool DBHelper::Server_AddNewServerInfo(
     }
     return true;
 }
+
+
+
+
+DBHelper::QueryResult<std::string,uint64_t> DBHelper::Server_GetServerInfo(int uid,int sid)
+{
+    QueryResult<std::string,uint64_t> result;
+
+    if (!runQuery(&result,fmt("\
+        select server_info,last_update_time from\
+            bs_db.server_info_table\
+        where\
+        user_id = %d and server_id = %d\
+    ",
+        uid,
+        sid)))
+    {
+        ERROR("select failed!");
+    }
+
+    return result;
+}

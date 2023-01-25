@@ -17,23 +17,28 @@ public:
     void Register_Close(const OnCloseHandler& handler);
     void CloseSession() ;
 private:
-    void Test_SetUserinfo(ybs::share::util::Buffer& packet);
-    void Test_GetUserinfo(ybs::share::util::Buffer& packet);
+    void Test_SetUserinfo(Buffer& packet);
+    void Test_GetUserinfo(Buffer& packet);
 
     
     /**
      * @brief 账号登录，账号名密码登录
      */
-    void Handler_PassportInfoLogin(ybs::share::util::Buffer& packet);
+    void Handler_PassportInfoLogin(Buffer& packet);
     /**
      * @brief 新用户注册
      */
-    void Handler_RegisterNewPassport(ybs::share::util::Buffer& packet);
+    void Handler_RegisterNewPassport(Buffer& packet);
 
     /**
      * @brief 添加一个服务器的信息
      */
-    void Handler_AddServerInfo(ybs::share::util::Buffer& packet);
+    void Handler_AddServerInfo(Buffer& packet);
+
+    /**
+     * @brief 查询服务器信息
+     */
+    void Handler_SearchServerInfo(Buffer& packet);
 private:
     int32_t m_session_id;
     OnCloseHandler  m_closed_handler;

@@ -17,11 +17,13 @@ private:
     
     
     /**
-     * @brief Client
+     * @brief As Client
      */
     void OnTime1s();
+    // 定时向共享库更新
     void SendServerInfoToMainServer();
-    
+    // 登录,自动启动向共享库更新
+    void LoginAndReconnect();
 
     /**
      * @brief server 需要定时向数据库写当前机器信息，并且重置超时定时器

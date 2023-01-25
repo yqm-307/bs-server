@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cassert>
 #include "share/util/logger.hpp"
+#include "share/boost_define.hpp"
 
 namespace ybs::share::util
 {
@@ -14,9 +15,9 @@ public:
     JsonReader(const std::string& filepath)
     {
         std::ifstream ifs;
+        auto str = boost::filesystem::initial_path<boost::filesystem::path>().string();
 	    ifs.open(filepath);
 	    assert(ifs.is_open());
-	
 	    Json::Reader reader;
         // 解析到root，root将包含Json里所有子元素
 	    if (!reader.parse(ifs, m_json, false))

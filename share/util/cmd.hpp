@@ -5,7 +5,7 @@ namespace ybs::share::util::cutil
 {
 
 
-std::string executeCMD(const char *cmd)
+static inline std::string executeCMD(const char *cmd)
 {
 
     char buffer[4096];

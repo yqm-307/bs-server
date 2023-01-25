@@ -19,6 +19,7 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(2001,Handler_PassportInfoLogin),      // 登录
             Y_SESSION_HANDLER(2002,Handler_RegisterNewPassport),    // 注册
             Y_SESSION_HANDLER(3002,Handler_AddServerInfo),          // 添加服务器
+            Y_SESSION_HANDLER(3003,Handler_SearchServerInfo),       // 查询服务器信息
         }
     );
 }
@@ -170,3 +171,32 @@ void Session::Handler_AddServerInfo(ybs::share::util::Buffer& packet)
     SendPacket(std::move(pck));
 }
 
+
+
+void Session::Handler_SearchServerInfo(Buffer& packet)
+{
+    int user_id = packet.ReadInt32();
+    int server_id = packet.ReadInt32();
+    Buffer pck;
+    do{
+        auto arr_result = DBHelper::GetInstance()->Server_GetServerInfo(user_id,server_id);
+        
+        if (arr_result.size() == 0)
+        {
+            pck.WriteInt32(1);  // 查不到结果
+            break;
+        }
+        // 是否超时
+        if ( (uint64_t)(time(NULL)) - std::get<1>(arr_result[0]) > 3)
+        {
+            pck.WriteInt32(2);  // 服务器已经断开
+        }
+        // 成功获取有效服务器信息
+        pck.WriteInt32(0);
+        pck.WriteString(std::get<0>(arr_result[0]));
+
+    }while(0);
+
+    SendPacket(std::move(pck));
+    
+}

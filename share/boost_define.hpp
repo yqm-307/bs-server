@@ -2,6 +2,7 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/filesystem.hpp>
 
 #include <vector>
 #include <map>

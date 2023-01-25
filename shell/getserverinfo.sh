@@ -14,12 +14,15 @@ echo '#!' `top -b -n1 | fgrep "Cpu(s)" | tail -1 | awk -F'id,'  \
         printf "CPU used   is %s", 100-v; \
     }'` '%'
 # linux 内存使用率
-echo '#!' `free -m | sed -n '2p' | awk '{ print "Mem total is: "$2" MB"}'`
+# echo '#!' `free -m | sed -n '2p' | awk '{ print "Mem total is: "$2" MB"}'`
 
-echo     `free -m | sed -n '2p' | awk '{ print "Mem used  is: "$3/$2%10*100"%"}'`
+# echo     `free -m | sed -n '2p' | awk '{ print "Mem used  is: "$3/$2%10*100"%"}'`
 
 # linux system time
-echo '#!' `date`
+# echo '#!' `date`
 # ip 地址
-echo '#!' `ifconfig | sed -n '2p' | awk '{ print "IP: "$2"" }'`
+# echo '#!' `ifconfig | sed -n '2p' | awk '{ print "IP: "$2"" }'`
+
+# 监视程序
+echo `./shell/time.sh`
 

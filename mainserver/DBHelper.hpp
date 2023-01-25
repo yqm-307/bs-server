@@ -21,7 +21,7 @@ public:
      * Test Table
      * 
      *********************************************************/
-    std::vector<std::tuple<int,std::string,int>> Test_GetUserInfo(int userid);
+    QueryResult<int,std::string,int> Test_GetUserInfo(int userid);
     bool Test_SetUserInfo(int userid,std::string& name,int age);
 
 
@@ -30,7 +30,7 @@ public:
      * 
      *********************************************************/
     // 根据账号查询用户信息
-    std::vector<std::tuple<int,int,std::string>> User_GetUserInfo(int passport);
+    QueryResult<int,int,std::string> User_GetUserInfo(int passport);
 
     // 插入一个新用户的账号信息
     int User_SetUserInfo(int portport ,std::string & password);
@@ -52,6 +52,9 @@ public:
         const std::string& username,
         const std::string& pwd
         );
+    // 获取服务器信息
+    QueryResult<std::string,uint64_t> Server_GetServerInfo(int uid,int sid);
+
 
 
 private:
