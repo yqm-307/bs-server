@@ -6,8 +6,6 @@ using namespace MainServer;
 
 
 #define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())
-#define ResultType(...) std::vector<std::tuple<##__VA_ARGS__>>
-
 
 
 DBHelper* DBHelper::GetInstance()
@@ -75,13 +73,13 @@ void DBHelper::InitTable()
     "));
 
     
-    runCommand(fmt("\
-        CREATE TABLE IF NOT EXISTS bs_db.server_updata_table(\
-        server_id INT UNSIGNED,\
-        linux_sys_info TEXT,\
-        cpu_info TEXT,\
-        )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
-    "));
+    // runCommand(fmt("\
+    //     CREATE TABLE IF NOT EXISTS bs_db.server_updata_table(\
+    //     server_id INT UNSIGNED,\
+    //     linux_sys_info TEXT,\
+    //     cpu_info TEXT,\
+    //     )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
+    // "));
 
 
     INFO("mysql table create success! table name: user_info_table");
@@ -144,34 +142,67 @@ std::vector<std::tuple<int,int,std::string>> DBHelper::User_GetUserInfo(int pass
 }
 
 
-int DBHelper::User_SetUserInfo(int passport ,std::string & password)
+int DBHelper::User_SetUserInfo(int uid,int passport ,std::string & password,int level)
 {
+    enum Errtype{
+        ok = 1,
+        passport_exist = 2,
+        pwd_bad =3,
+        sql_error = 4,
+        level_bad = 5,
+    };
+    // 注册的用户权限是否为root权限
+    QueryResult<int> user;
+    if (!runQuery(&user,fmt("\
+        select qx_level\
+        from user_info_table\
+        where user_id=%d\
+    ",
+    uid)))
+    {
+        ERROR("select failed!");
+        return sql_error;
+    }
+
+    if (user.size() == 0)
+    {
+        FATAL("使用不存在用户登录成功");
+        return sql_error;
+    }
+    if (std::get<0>(user[0]) != 1)
+    {
+        return level_bad;
+    }
+
     auto vec = User_GetUserInfo(passport);
     if (vec.size() != 0)
     {// 账号已经存在
         ERROR("passport is exists!");
-        return 2;
+        return  passport_exist;
     }
     if (password.size() == 0)
     {
         // 密码非法
         ERROR("password invalid!");
-        return 3;
+        return pwd_bad;
     }
 
     try{
         runCommand(fmt("\
         insert into bs_db.user_info_table\
-            (passport,password) values\
-            ( %d , '%s' )\
-        ",passport,password.c_str()));
+            (passport,password,qx_level) values\
+            ( %d , '%s' , %d )\
+        ",
+        passport,
+        password.c_str(),
+        level));
     }catch(const std::exception& e)
     {
         // sql执行失败
         ERROR("%s",e.what());
-        return 4;
+        return sql_error;
     }
-    return 1;
+    return ok;
 }
 
 
@@ -186,8 +217,10 @@ int DBHelper::Server_UIDANDSID_Is_Repeat(int uid,int sid)
         // user 是否存在
         if (!runQuery(&r2,fmt("\
             select user_id from \
-            bs_db.user_info_table\ 
-            where user_id = %d",uid)))
+            bs_db.user_info_table\
+            where user_id = %d\
+            ",
+            uid)))
         {
             ERROR("select failed!");
             ret = 1;

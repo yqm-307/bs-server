@@ -33,7 +33,7 @@ public:
     QueryResult<int,int,std::string> User_GetUserInfo(int passport);
 
     // 插入一个新用户的账号信息
-    int User_SetUserInfo(int portport ,std::string & password);
+    int User_SetUserInfo(int uid,int portport ,std::string & password,int level);
 
     /*********************************************************
      * server info Table

@@ -102,17 +102,21 @@ void Session::Handler_RegisterNewPassport(ybs::share::util::Buffer& packet)
     /**
      * packet:
      * {
+     *      uid,        当前用户的id
      *      int,        账号
      *      cstring,    密码
+     *      int         权限
      * }
      */
-
+    int uid = packet.ReadInt32();
     int passport = packet.ReadInt32();
     auto password = packet.ReadCString();
+    int level = packet.ReadInt32();
+
     DEBUG("%d %s",passport,password.c_str());
 
     Buffer sendpck;
-    sendpck.WriteInt32(DBHelper::GetInstance()->User_SetUserInfo(passport,password));   // 返回注册结果
+    sendpck.WriteInt32(DBHelper::GetInstance()->User_SetUserInfo(uid,passport,password,level));   // 返回注册结果
     SendPacket(std::move(sendpck));
 
 }
