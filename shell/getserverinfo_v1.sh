@@ -81,20 +81,20 @@ CHECK_HOME="$(cd "`dirname "$0"`"; pwd)"
  
 #内存阈值
 mem_mo='70'
- PERCENT=$(free -m | sed -n '2p' | awk '{ print ""$3/$2%10*100"%"}')
- PERCENT_1=$(echo $PERCENT|sed 's/%//g')
- if [[ $PERCENT_1 -gt $mem_mo ]]
-     then
-      mem_status_total="$mem_total"MB
-      mem_status_use="$mem_use"MB
-      mem_status_per=$PERCENT
-      mem_status=不正常
-    else
-      mem_status_total="$mem_total"MB
-      mem_status_use=$"$mem_use"MB
-      mem_status_per=$PERCENT
-      mem_status=正常
- fi
+PERCENT=$(free -m | sed -n '2p' | awk '{ print ""$3/$2%10*100"%"}')
+PERCENT_1=$(echo $PERCENT|sed 's/%//g')
+if [[ $PERCENT_1 -gt $mem_mo ]]
+then
+     mem_status_total="$mem_total"MB
+     mem_status_use="$mem_use"MB
+     mem_status_per=$PERCENT
+     mem_status=不正常
+     else
+     mem_status_total="$mem_total"MB
+     mem_status_use=$"$mem_use"MB
+     mem_status_per=$PERCENT
+     mem_status=正常
+     fi
 
 echo -e "统计时间|$time_day"
 echo -e "服务器IP|$system_ip"
