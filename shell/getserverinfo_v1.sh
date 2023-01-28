@@ -26,7 +26,7 @@ cpu_used=$(top -b -n1 | fgrep "Cpu(s)" | tail -1 | awk -F'id,'  \
         split($1, vs, ",");\
         v=vs[length(vs)];\
         sub(/\s+/, "", v);\
-        sub(/\s+/, "", v);\ 
+        sub(/\s+/, "", v);\
         printf "%s%%", 100-v; \
     }')
 
