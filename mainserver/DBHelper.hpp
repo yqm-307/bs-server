@@ -31,10 +31,15 @@ public:
      *********************************************************/
     // 根据账号查询用户信息
     QueryResult<int,int,std::string> User_GetUserInfo(int passport);
+    QueryResult<int,int,std::string,int> User_GetUserInfoBypassport_v1(int passport);
+    QueryResult<int,int,std::string,int> User_GetUserInfoByUid_v1(int uid);
+
 
     // 插入一个新用户的账号信息
     int User_SetUserInfo(int uid,int portport ,std::string & password,int level);
-
+    // 更新信息
+    int User_SetNewPassword(int uid, std::string& password,int level); // 账号和uid不能被更新
+    
     /*********************************************************
      * server info Table
      * 
@@ -54,6 +59,8 @@ public:
         );
     // 获取服务器信息
     QueryResult<std::string,uint64_t> Server_GetServerInfo(int uid,int sid);
+
+    // 获取账号密码
 
 
 

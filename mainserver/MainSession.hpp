@@ -39,6 +39,14 @@ private:
      * @brief 查询服务器信息
      */
     void Handler_SearchServerInfo(Buffer& packet);
+    /**
+     * @brief 修改用户密码
+     */
+    void Handler_UpdatePassword(Buffer& packet);
+    /**
+     * @brief 查询用户的所有信息
+     */
+    void Handler_GetUserInfoList(Buffer& packet);
 private:
     int32_t m_session_id;
     OnCloseHandler  m_closed_handler;

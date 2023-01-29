@@ -297,3 +297,53 @@ DBHelper::QueryResult<std::string,uint64_t> DBHelper::Server_GetServerInfo(int u
 
     return result;
 }
+
+
+DBHelper::QueryResult<int,int,std::string,int> DBHelper::User_GetUserInfoBypassport_v1(int passport)
+{
+    QueryResult<int,int,std::string,int> result;
+    if (!runQuery(&result,fmt("\
+        select user_id,passport,password,qx_level\
+        from bs_db.user_info_table\
+        where passport=%d\
+        ",passport)))
+    {
+        ERROR("select failed!");
+    }
+
+    return result;
+}
+DBHelper::QueryResult<int,int,std::string,int> DBHelper::User_GetUserInfoByUid_v1(int uid)
+{
+    QueryResult<int,int,std::string,int> result;
+    if (!runQuery(&result,fmt("\
+        select user_id,passport,password,qx_level\
+        from bs_db.user_info_table\
+        where user_id=%d\
+        ",uid)))
+    {
+        ERROR("select failed!");
+    }
+    
+    return result;
+}
+
+
+
+int DBHelper::User_SetNewPassword(int uid, std::string& password,int level)
+{
+    if (!runCommand(fmt("\
+        update bs_db.user_info_table\
+        set password='%s' , qx_level=%d\
+        where user_id=%d\
+        ",
+        password.c_str(),
+        level,
+        uid)))
+    {
+        ERROR("update failed!");
+        return 1;
+    }
+    return 0;
+
+}

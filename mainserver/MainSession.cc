@@ -20,6 +20,8 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(2002,Handler_RegisterNewPassport),    // 注册
             Y_SESSION_HANDLER(3002,Handler_AddServerInfo),          // 添加服务器
             Y_SESSION_HANDLER(3003,Handler_SearchServerInfo),       // 查询服务器信息
+            Y_SESSION_HANDLER(3004,Handler_UpdatePassword),         // 修改密码
+            Y_SESSION_HANDLER(3005,Handler_GetUserInfoList),        // 获取用户信息列表
         }
     );
 }
@@ -203,4 +205,70 @@ void Session::Handler_SearchServerInfo(Buffer& packet)
 
     SendPacket(std::move(pck));
     
+}
+
+
+void Session::Handler_UpdatePassword(Buffer& packet)
+{
+    enum Err : int
+    {
+        OK = 1,
+        Pwd_not_need_update = 2,
+        Uid_not_found = 3,
+        Sql_failed = 4,
+
+    };
+    int uid = packet.ReadInt32();
+    auto newpassword = packet.ReadCString();
+
+    Buffer pck;
+    do{
+        // 查询旧密码
+        auto result_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        if ( newpassword == std::get<2>(result_vec[0]))
+        {
+            pck.WriteInt32(Pwd_not_need_update);
+            break;
+        }
+        if (result_vec.size() == 0)
+        {
+            pck.WriteInt32(Uid_not_found);
+            break;
+        }
+        auto res = DBHelper::GetInstance()->User_SetNewPassword(uid,newpassword,std::get<3>(result_vec[0]));
+        if (res == 1)
+        {
+            pck.WriteInt32(Sql_failed);
+            break;
+        }
+        pck.WriteInt32(OK);
+
+    }while(0);
+
+    SendPacket(std::move(pck));
+}
+
+
+void Session::Handler_GetUserInfoList(Buffer& packet)
+{
+    /**
+     * uid
+     * pwd
+     * level
+     */
+    int uid = packet.ReadInt32();
+    Buffer pck;
+    do{
+        auto result_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        if (result_vec.size() == 0)
+        {
+            pck.WriteInt32(2);
+        }
+        pck.WriteInt32(1);
+        pck.WriteInt32(std::get<0>(result_vec[0])); // uid
+        pck.WriteInt32(std::get<1>(result_vec[0])); // passport
+        pck.WriteInt32(std::get<3>(result_vec[0])); // level
+    }while(0);
+
+    SendPacket(std::move(pck));
 }
