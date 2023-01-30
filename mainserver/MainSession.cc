@@ -23,6 +23,7 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(3004,Handler_UpdatePassword),         // 修改密码
             Y_SESSION_HANDLER(3005,Handler_GetUserInfoList),        // 获取用户信息列表
             Y_SESSION_HANDLER(3006,Handler_GetAllServerInfoList),   // 获取所有服务器信息
+            Y_SESSION_HANDLER(3007,Handler_GetServerIPBySid),       // 通过 id 获取 ip
         }
     );
 }
@@ -300,4 +301,27 @@ void Session::Handler_GetAllServerInfoList(Buffer& packet)
 void Session::Handler_GetAllPortInfoList(Buffer& packet)
 {
     // select port info
+
+}
+
+void Session::Handler_GetServerIPBySid(Buffer& packet)
+{
+    Buffer pck;
+    int sid = pck.ReadInt32();
+    do{
+        auto res_vec = DBHelper::GetInstance()->Server_GetAllServerInfo();
+        for (auto&& line:res_vec)
+        {
+            if (std::get<0>(line) == sid)
+            {
+                pck.WriteInt32(1);
+                pck.WriteString(std::get<1>(line));
+                SendPacket(std::move(pck));
+                return;
+            }
+        }
+        pck.WriteInt32(2);  // 找不到serverid没有结果
+    }while(0);
+
+    SendPacket(std::move(pck));
 }

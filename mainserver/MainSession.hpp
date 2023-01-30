@@ -55,7 +55,10 @@ private:
      * @brief 获取当前防火墙打开的所有端口
      */
     void Handler_GetAllPortInfoList(Buffer& packet);
-
+    /**
+     * @brief 
+     */
+    void Handler_GetServerIPBySid(Buffer& packet);
 private:
     int32_t m_session_id;
     OnCloseHandler  m_closed_handler;
