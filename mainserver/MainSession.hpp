@@ -47,6 +47,15 @@ private:
      * @brief 查询用户的所有信息
      */
     void Handler_GetUserInfoList(Buffer& packet);
+    /**
+     * @brief 获取所有服务器基本信息的列表
+     */
+    void Handler_GetAllServerInfoList(Buffer& packet);
+    /**
+     * @brief 获取当前防火墙打开的所有端口
+     */
+    void Handler_GetAllPortInfoList(Buffer& packet);
+
 private:
     int32_t m_session_id;
     OnCloseHandler  m_closed_handler;

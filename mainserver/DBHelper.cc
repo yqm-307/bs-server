@@ -347,3 +347,15 @@ int DBHelper::User_SetNewPassword(int uid, std::string& password,int level)
     return 0;
 
 }
+
+
+
+DBHelper::QueryResult<int,std::string,uint64_t,int> DBHelper::Server_GetAllServerInfo()
+{
+    QueryResult<int,std::string,uint64_t,int> result;
+    runQuery(&result,fmt("\
+        select server_id,server_ip,last_update_time,server_level\
+        from bs_db.server_info_table\
+    "));
+    return result;
+}

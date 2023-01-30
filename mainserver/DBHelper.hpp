@@ -62,6 +62,9 @@ public:
 
     // 获取账号密码
 
+    // 获取所有服务器的部分信息
+    QueryResult<int,std::string,uint64_t,int> Server_GetAllServerInfo();
+
 
 
 private:

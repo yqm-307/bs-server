@@ -22,6 +22,7 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(3003,Handler_SearchServerInfo),       // 查询服务器信息
             Y_SESSION_HANDLER(3004,Handler_UpdatePassword),         // 修改密码
             Y_SESSION_HANDLER(3005,Handler_GetUserInfoList),        // 获取用户信息列表
+            Y_SESSION_HANDLER(3006,Handler_GetAllServerInfoList),   // 获取所有服务器信息
         }
     );
 }
@@ -271,4 +272,32 @@ void Session::Handler_GetUserInfoList(Buffer& packet)
     }while(0);
 
     SendPacket(std::move(pck));
+}
+
+
+void Session::Handler_GetAllServerInfoList(Buffer& packet)
+{
+    // 获取所有服务器的 id | ip | 状态 |权限
+    auto rlt_vec = DBHelper::GetInstance()->Server_GetAllServerInfo();
+
+    std::string str;
+    for (auto&& line : rlt_vec)
+    {
+        str += std::to_string(std::get<0>(line))+'|';
+        str += std::get<1>(line)+'|';
+        if ((uint64_t)(time(NULL)) - std::get<2>(line) > 3)
+            str += "离线|";
+        else
+            str += "在线|";
+        str += std::to_string(std::get<3>(line)) + "|\n";
+    }
+    Buffer buf(str);
+
+    SendPacket(std::move(buf));
+}
+
+
+void Session::Handler_GetAllPortInfoList(Buffer& packet)
+{
+    // select port info
 }
