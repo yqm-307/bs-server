@@ -29,6 +29,10 @@ private:
      * @brief 
      */
     void Handler_ufw_portinfo(Buffer& buffer);
+    void Handler_ufw_close(Buffer& buffer);
+    void Handler_ufw_open(Buffer& buffer);
+    void Handler_addport(Buffer& buffer);
+    void Handler_delport(Buffer& buffer);
 
 private:
 

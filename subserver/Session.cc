@@ -8,6 +8,7 @@ using namespace SubServer;
     [this](ybs::share::util::Buffer&f){this->handler(f);}\
 }
 
+#define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())
 
 Session::Session(boost::asio::io_context& ioc,boost::asio::ip::tcp::socket&& sock)
     :Session_Base(ioc,std::move(sock)),
@@ -17,6 +18,10 @@ Session::Session(boost::asio::io_context& ioc,boost::asio::ip::tcp::socket&& soc
         {   
             Y_SESSION_HANDLER(4001,Handler_Client_Ping_SubServer),
             Y_SESSION_HANDLER(4002,Handler_ufw_portinfo),
+            Y_SESSION_HANDLER(4003,Handler_ufw_close),
+            Y_SESSION_HANDLER(4004,Handler_ufw_open),
+            Y_SESSION_HANDLER(4005,Handler_addport),
+            Y_SESSION_HANDLER(4006,Handler_delport),
         }
     );
 }
@@ -86,7 +91,47 @@ void Session::Handler_ufw_portinfo(Buffer& buffer)
     do{
         auto port = ybs::share::util::cutil::executeCMD("./shell/ufw.sh 4");
         pck.WriteString(port);
+        DEBUG("%s",port.c_str());
     }while(0);
 
+    SendPacket(std::move(pck));
+}
+
+void Session::Handler_ufw_close(Buffer &buffer)
+{
+    Buffer pck;
+    auto port = ybs::share::util::cutil::executeCMD("./shell/ufw.sh 2");
+    pck.WriteInt32(1);
+    DEBUG("%s",port.c_str());
+    SendPacket(std::move(pck));
+}
+
+void Session::Handler_ufw_open(Buffer &buffer)
+{
+    Buffer pck;
+    auto port = ybs::share::util::cutil::executeCMD("./shell/ufw.sh 3");
+    DEBUG("%s",port.c_str());
+    pck.WriteInt32(1);
+    SendPacket(std::move(pck));
+}
+
+void Session::Handler_addport(Buffer& buffer)
+{
+    Buffer pck;
+    int port = buffer.ReadInt32();
+    auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/ufw.sh 5 %d",port));
+    
+    DEBUG("%s",res.c_str());
+    pck.WriteInt32(1);
+    SendPacket(std::move(pck));
+}
+void Session::Handler_delport(Buffer& buffer)
+{
+    Buffer pck;
+    int port = buffer.ReadInt32();
+    auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/ufw.sh 6 %d",port));
+    DEBUG("%s",res.c_str());
+    
+    pck.WriteInt32(1);
     SendPacket(std::move(pck));
 }
