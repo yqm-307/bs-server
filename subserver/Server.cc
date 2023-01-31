@@ -34,7 +34,7 @@ void Server::Init()
 
 void Server::OnTime1s()
 {
-    DEBUG("Trigger Once!");
+    // DEBUG("Trigger Once!");
     // 定时向数据库写入基础信息
     this->SendServerInfoToMainServer();
 

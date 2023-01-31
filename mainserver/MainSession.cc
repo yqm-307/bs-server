@@ -307,7 +307,7 @@ void Session::Handler_GetAllPortInfoList(Buffer& packet)
 void Session::Handler_GetServerIPBySid(Buffer& packet)
 {
     Buffer pck;
-    int sid = pck.ReadInt32();
+    int sid = packet.ReadInt32();
     do{
         auto res_vec = DBHelper::GetInstance()->Server_GetAllServerInfo();
         for (auto&& line:res_vec)

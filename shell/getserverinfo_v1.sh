@@ -83,8 +83,8 @@ CHECK_HOME="$(cd "`dirname "$0"`"; pwd)"
 mem_mo='70'
 PERCENT=$(free -m | sed -n '2p' | awk '{ print ""$3/$2%10*100"%"}')
 PERCENT_1=$(echo $PERCENT|sed 's/%//g')
-if [[ $PERCENT_1 -gt $mem_mo ]]
-then
+a1=$(echo "$PERCENT_1 > $mem_mo" | bc)
+if [ $a1 -eq 1 ];then
      mem_status_total="$mem_total"MB
      mem_status_use="$mem_use"MB
      mem_status_per=$PERCENT

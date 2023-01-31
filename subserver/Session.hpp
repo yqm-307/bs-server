@@ -21,12 +21,14 @@ private:
      * @brief 向 mainserver 定时发送服务器基本信息
      */
     void Handler_Timer_SendToMain_ServerInfo(); 
-
-
     /**
      * @brief 客户端连接测试
      */
     void Handler_Client_Ping_SubServer(ybs::share::util::Buffer& buffer);
+    /**
+     * @brief 
+     */
+    void Handler_ufw_portinfo(Buffer& buffer);
 
 private:
 

@@ -26,7 +26,7 @@ DBHelper::DBHelper()
     )
 {
     try{
-        InitTable();    // 创建表结构
+        // InitTable();    // 创建表结构
     }
     catch(MySqlException& e)
     {
@@ -44,7 +44,7 @@ void DBHelper::InitTable()
 void DBHelper::SetServerInfo(int uid,int sid)
 {
     auto result = ybs::share::util::cutil::executeCMD("./shell/getserverinfo_v1.sh");
-    DEBUG("%s",result.c_str());
+    // DEBUG("%s",result.c_str());
     auto timenow = uint64_t(time(NULL));
     if (!runCommand(fmt("\
         update bs_db.server_info_table\
