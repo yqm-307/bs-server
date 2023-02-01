@@ -91,3 +91,11 @@ std::tuple<int,int> DBHelper::ServerIsRegister()
     return result[0];
 
 }
+
+DBHelper::QueryResult<std::string> DBHelper::Server_GetRootpwd(int sid)
+{
+    QueryResult<std::string> result;
+
+    runQuery(&result,fmt("select linux_pwd from bs_db.server_info_table where server_id=%d",sid));
+    return result;
+}

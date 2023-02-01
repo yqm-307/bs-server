@@ -1,9 +1,9 @@
 #!/usr/bin/bash
-
+pwd=$2
 
 get_ufw_open_status()
 {
-    local res=$(echo 200101 | sudo -S ufw status | grep inactive)
+    local res=$(echo $pwd | sudo -S ufw status | grep inactive)
     if [ -z "$res" ];
     then 
         echo '1'
@@ -14,29 +14,29 @@ get_ufw_open_status()
 
 close_ufw()
 {
-    local res=$(echo 200101 | sudo -S ufw disable)
+    local res=$(echo $pwd | sudo -S ufw disable)
     echo $res
 }
 
 open_ufw()
 {
-    local res=$(echo 200101 | sudo -S ufw -f enable)
+    local res=$(echo $pwd | sudo -S ufw -f enable)
     echo $res
 }
 
 get_ufw_open_port()
 {
-    local res=$(echo 200101 | sudo -S ufw status | grep 'ALLOW' | grep -v 'v6\|tcp\|udp' | awk {'print $1"|"$2'})
+    local res=$(echo $pwd | sudo -S ufw status | grep 'ALLOW' | grep -v 'v6\|tcp\|udp' | awk {'print $1"|"$2'})
     echo $res
 }
 
 ufw_open_port()
 {
-    local res=$(echo 200101 | sudo -S ufw allow $1)
+    local res=$(echo $pwd | sudo -S ufw allow $1)
 }
 ufw_close_port()
 {
-    local res=$(echo 200101 | sudo -S ufw deny $1)
+    local res=$(echo $pwd | sudo -S ufw deny $1)
 }
 
 
@@ -54,10 +54,10 @@ then
     get_ufw_open_port
 elif (( $1 == '5' ));   # 打开端口
 then
-    ufw_open_port $2
+    ufw_open_port $3
 elif (( $1 == '6' ));   # 关闭端口
 then
-    ufw_close_port $2
+    ufw_close_port $3
 fi
 
 

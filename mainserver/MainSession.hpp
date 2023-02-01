@@ -59,6 +59,10 @@ private:
      * @brief 
      */
     void Handler_GetServerIPBySid(Buffer& packet);
+    /**
+     * @brief nginx测试配置文件
+     */
+    void Handler_NginxTest(Buffer& packet);
 private:
     int32_t m_session_id;
     OnCloseHandler  m_closed_handler;
