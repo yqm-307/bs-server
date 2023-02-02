@@ -114,10 +114,20 @@ void Session::Handler_ufw_close(Buffer &buffer)
 void Session::Handler_ufw_open(Buffer &buffer)
 {
     Buffer pck;
-    int uid = buffer.ReadInt32();
-    auto port = ybs::share::util::cutil::executeCMD("./shell/ufw.sh 3");
-    DEBUG("%s", port.c_str());
-    pck.WriteInt32(1);
+        int uid = buffer.ReadInt32();
+    do
+    {
+        auto pwd = DBHelper::GetInstance()->Server_GetRootpwd(uid);
+        if (pwd.size() == 0)
+        {
+            pck.WriteInt32(1);
+            break;
+        }
+        auto port = ybs::share::util::cutil::executeCMD(fmt("./shell/ufw.sh 3 %s", std::get<0>(pwd[0]).c_str()));
+        pck.WriteInt32(2);
+        DEBUG("%s", port.c_str());
+    } while (0);
+
     SendPacket(std::move(pck));
 }
 
