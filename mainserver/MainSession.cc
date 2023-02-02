@@ -1,5 +1,5 @@
 #include "mainserver/MainSession.hpp"
-
+#include "share/util/cmd.hpp"
 
 using namespace MainServer;
 
@@ -7,6 +7,7 @@ using namespace MainServer;
     id,\
     [this](ybs::share::util::Buffer&f){this->handler(f);}\
 }
+#define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())
 
 
 Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock)
@@ -24,6 +25,7 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(3005,Handler_GetUserInfoList),        // 获取用户信息列表
             Y_SESSION_HANDLER(3006,Handler_GetAllServerInfoList),   // 获取所有服务器信息
             Y_SESSION_HANDLER(3007,Handler_GetServerIPBySid),       // 通过 id 获取 ip
+            Y_SESSION_HANDLER(3008,Handler_NginxTest),              // nginx config test
         }
     );
 }
@@ -321,6 +323,21 @@ void Session::Handler_GetServerIPBySid(Buffer& packet)
             }
         }
         pck.WriteInt32(2);  // 找不到serverid没有结果
+    }while(0);
+
+    SendPacket(std::move(pck));
+}
+
+void Session::Handler_NginxTest(Buffer& packet)
+{
+    
+    Buffer pck;
+    int sid = packet.ReadInt32();
+    std::string config= packet.ReadCString();
+    do{
+        auto res_vec = DBHelper::GetInstance()->Server_GetAllServerInfo();
+        auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/nginx.sh 200101 1 \"%s\"",config.c_str()));
+        pck.WriteInt32(std::stoi(res));  // 找不到serverid没有结果
     }while(0);
 
     SendPacket(std::move(pck));
