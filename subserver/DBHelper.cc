@@ -5,7 +5,7 @@
 using namespace SubServer;
 
 
-#define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())
+#define fmt(args,...) (bbt::log::format(args,##__VA_ARGS__).c_str())
 
 DBHelper* DBHelper::GetInstance()
 {

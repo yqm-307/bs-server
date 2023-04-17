@@ -18,4 +18,4 @@ file(GLOB_RECURSE SRCS
 # message("this is regex result: " ${SRCS})
 
 add_executable(subserver ${SRCS})
-target_link_libraries(subserver -lboost_regex -lboost_filesystem  -lpthread -ljsoncpp -lmysqlclient)
+target_link_libraries(subserver -lboost_regex -lboost_filesystem  -lpthread -ljsoncpp -lmysqlclient -lybbt)

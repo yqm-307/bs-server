@@ -60,12 +60,15 @@ public:
     // 获取服务器信息
     QueryResult<std::string,uint64_t> Server_GetServerInfo(int uid,int sid);
 
-    // 获取账号密码
 
     // 获取所有服务器的部分信息
     QueryResult<int,std::string,uint64_t,int> Server_GetAllServerInfo();
 
+    // 删除一个用户
+    bool Server_DelUserInfo(int id);
 
+    // 删除一个服务器信息
+    int Server_DelServerInfo(int sid);
 
 private:
     void InitTable();

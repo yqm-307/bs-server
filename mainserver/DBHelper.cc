@@ -1,11 +1,10 @@
 #include "mainserver/DBHelper.hpp"
 #include "mainserver/ConfigManager.hpp"
-
+#include "bbt/Logger/Logger.hpp"
 
 using namespace MainServer;
 
-
-#define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())
+#define fmt(args,...) (bbt::log::format(args,##__VA_ARGS__).c_str())
 
 
 DBHelper* DBHelper::GetInstance()
@@ -51,6 +50,7 @@ void DBHelper::InitTable()
         PRIMARY KEY ( user_id )\
         )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
         "));
+    INFO("mysql table create success! table name: user_info_table");
 
     // server_info_table
     runCommand(fmt("\
@@ -65,16 +65,16 @@ void DBHelper::InitTable()
         linux_pwd VARCHAR(255),\
         open_port MEDIUMTEXT,\
         server_info MEDIUMTEXT,\
-        last_update_time BIGINT UNSIGNED,\
+        last_update_time BIGINT UNSIGNED DEFAULT 1681194308,\
         ssh_flag INT UNSIGNED,\
         ssh_publickey TEXT,\
-        PRIMARY KEY ( user_id )\
+        PRIMARY KEY ( server_id )\
         )ENGINE=InnoDB DEFAULT CHARSET=utf8;\
     "));
 
 
 
-    INFO("mysql table create success! table name: user_info_table");
+    INFO("mysql table create success! table name: server_info_table");
 }
 
 std::vector<std::tuple<int,std::string,int>> DBHelper::Test_GetUserInfo(int userid)
@@ -257,9 +257,9 @@ bool DBHelper::Server_AddNewServerInfo(
 {
     if (!runCommand(fmt("\
         insert into bs_db.server_info_table \
-        (user_id,server_id,server_ip,server_port,server_level,flag_ufw,linux_username,linux_pwd)\
+        (user_id,server_id,server_ip,server_port,server_level,flag_ufw,linux_username,linux_pwd,server_info,last_update_time)\
         values\
-        (%u,%u,\"%s\",%u,%d,%d,\"%s\",\"%s\")\
+        (%u,%u,\"%s\",%u,%d,%d,\"%s\",\"%s\",\"暂无服务器信息\",1681194945)\
     ",
     user_id,
     server_id,
@@ -358,4 +358,21 @@ DBHelper::QueryResult<int,std::string,uint64_t,int> DBHelper::Server_GetAllServe
         from bs_db.server_info_table\
     "));
     return result;
+}
+
+bool DBHelper::Server_DelUserInfo(int uid)
+{
+    auto res = User_GetUserInfo(uid);
+    if (res.size() <= 0)
+    {
+        return false;
+    }
+    int a = std::get<0>(res[0]);
+    runCommand(fmt("delete from user_info_table where user_id=%d",uid));
+    return true;
+}
+
+int DBHelper::Server_DelServerInfo(int sid)
+{
+    return runCommand(fmt("delete from server_info_table where server_id=%d",sid));
 }

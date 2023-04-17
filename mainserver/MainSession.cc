@@ -7,7 +7,7 @@ using namespace MainServer;
     id,\
     [this](ybs::share::util::Buffer&f){this->handler(f);}\
 }
-#define fmt(args,...) (ybs::share::util::format(args,##__VA_ARGS__).c_str())
+#define fmt(args,...) (bbt::log::format(args,##__VA_ARGS__).c_str())
 
 
 Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock)
@@ -26,6 +26,7 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(3006,Handler_GetAllServerInfoList),   // 获取所有服务器信息
             Y_SESSION_HANDLER(3007,Handler_GetServerIPBySid),       // 通过 id 获取 ip
             Y_SESSION_HANDLER(3008,Handler_NginxTest),              // nginx config test
+            Y_SESSION_HANDLER(3009,Handler_DelServer),              // 删除服务器
         }
     );
 }
@@ -171,10 +172,10 @@ void Session::Handler_AddServerInfo(ybs::share::util::Buffer& packet)
             linux_pwd
         ))
         {
-            pck.WriteString("插入失败,请查看服务器日志");
+            pck.WriteString("添加失败,请查看服务器日志");
         }
         else
-            pck.WriteString("插入成功");
+            pck.WriteString("添加成功");
         
     }
 
@@ -335,10 +336,58 @@ void Session::Handler_NginxTest(Buffer& packet)
     int sid = packet.ReadInt32();
     std::string config= packet.ReadCString();
     do{
+        if (config.find("server{") < config.size())
+        {
+            auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/nginx.sh 200101 1 \"%s\"",config.c_str()));
+            pck.WriteInt32(1);  // 找不到serverid没有结果
+            break;
+        }
         auto res_vec = DBHelper::GetInstance()->Server_GetAllServerInfo();
         auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/nginx.sh 200101 1 \"%s\"",config.c_str()));
         pck.WriteInt32(std::stoi(res));  // 找不到serverid没有结果
     }while(0);
 
+    SendPacket(std::move(pck));
+}
+
+void Session::Handler_DelServer(Buffer& packet)
+{
+    Buffer pck;
+    int uid = packet.ReadInt32();
+    int sid = packet.ReadInt32();
+    do{
+        auto serverinfo = DBHelper::GetInstance()->Server_GetServerInfo(uid,sid);
+        if (serverinfo.size() <= 0)
+        {
+            pck.WriteInt32(2);
+            break;
+        }
+        bool success = DBHelper::GetInstance()->Server_DelServerInfo(sid);     
+        if (success)
+        {
+            pck.WriteInt32(1);
+        }   
+        else
+        {
+            pck.WriteInt32(3);
+        }
+    }while(0);
+    SendPacket(std::move(pck));
+
+}
+
+void Session::Handler_DelUser(Buffer& packet)
+{
+    Buffer pck;
+    int a = packet.ReadInt32();
+    bool success = DBHelper::GetInstance()->Server_DelUserInfo(a);
+    if (success)
+    {
+        pck.WriteInt32(1);
+    }
+    else
+    {
+        pck.WriteInt32(0);
+    }
     SendPacket(std::move(pck));
 }

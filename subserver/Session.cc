@@ -9,7 +9,7 @@ using namespace SubServer;
             [this](ybs::share::util::Buffer &f) { this->handler(f); } \
     }
 
-#define fmt(args, ...) (ybs::share::util::format(args, ##__VA_ARGS__).c_str())
+#define fmt(args, ...) (bbt::log::format(args, ##__VA_ARGS__).c_str())
 
 Session::Session(boost::asio::io_context &ioc, boost::asio::ip::tcp::socket &&sock)
     : Session_Base(ioc, std::move(sock)),

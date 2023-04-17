@@ -63,6 +63,12 @@ private:
      * @brief nginx测试配置文件
      */
     void Handler_NginxTest(Buffer& packet);
+
+    // 删除服务器
+    void Handler_DelServer(Buffer& packet);
+    // 删除用户
+    void Handler_DelUser(Buffer& packet);
+    
 private:
     int32_t m_session_id;
     OnCloseHandler  m_closed_handler;
