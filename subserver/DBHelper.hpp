@@ -21,6 +21,7 @@ public:
     // 服务器是否注册了,如果存在返回user_id&server_id,否则返回0
     std::tuple<int,int> ServerIsRegister();
     QueryResult<std::string> Server_GetRootpwd(int sid);
+    QueryResult<int,int,std::string,int> User_GetUserInfoByUid_v1(int uid);
 
 private:
     void InitTable();

@@ -27,6 +27,7 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(3007,Handler_GetServerIPBySid),       // 通过 id 获取 ip
             Y_SESSION_HANDLER(3008,Handler_NginxTest),              // nginx config test
             Y_SESSION_HANDLER(3009,Handler_DelServer),              // 删除服务器
+            Y_SESSION_HANDLER(3010,Handler_ReloadNginx),            // 重新加载Nginx
         }
     );
 }
@@ -74,33 +75,41 @@ void Session::Test_GetUserinfo(ybs::share::util::Buffer &packet)
 
 void Session::Handler_PassportInfoLogin(ybs::share::util::Buffer& packet)
 {
-    
+    enum status {
+        OK = 0,
+        Pwd_Error = 1,
+        Passport_Not_Found = 2,
+    };
     int passport = packet.ReadInt32();
     auto password = packet.ReadCString();
+    int uid = -1;
+    ybs::share::util::Buffer pck;
+    do{
+        // 数据库查询结果
+        auto res = DBHelper::GetInstance()->User_GetUserInfo(passport);
+        if (res.size() == 0)
+        {
+            ERROR("sql failed!");
+            pck.WriteInt32(Passport_Not_Found); // 没有注册
+            break;
+        }
 
-    // 数据库查询结果
-    auto res = DBHelper::GetInstance()->User_GetUserInfo(passport);
-    if (res.size() == 0)
-    {
-        ERROR("sql failed!");
-        return;
-    }
+        auto p = res[0];
 
-    auto p = res[0];
+        int user_id = std::get<0>(p);
+        uid = user_id;
+        int pp = std::get<1>(p);
+        std::string pwd= std::get<2>(p);
+        // 验证
 
-    int user_id = std::get<0>(p);
-    int pp = std::get<1>(p);
-    std::string pwd= std::get<2>(p);
-    // 验证
-    ybs::share::util::Buffer buff;
+        if ( (pp == passport) && (pwd == password) )
+            pck.WriteInt32(OK);
+        else
+            pck.WriteInt32(Pwd_Error);
+    }while(0);
+    pck.WriteInt32(uid);
 
-    if ( (pp == passport) && (pwd == password) )
-        buff.WriteInt32(1);
-    else
-        buff.WriteInt32(0);
-
-    buff.WriteInt32(user_id);
-    this->SendPacket(std::move(buff));
+    this->SendPacket(std::move(pck));
 }
 
 
@@ -115,15 +124,43 @@ void Session::Handler_RegisterNewPassport(ybs::share::util::Buffer& packet)
      *      int         权限
      * }
      */
+    enum status {
+        OK = 1,
+        Passport_Exist = 2, // 账号重复
+        Pwd_error = 3,      // 密码非法
+        Error = 4,          // 其他错误
+        Quanxianbuzu = 5,   // 权限不足
+    };
     int uid = packet.ReadInt32();
     int passport = packet.ReadInt32();
     auto password = packet.ReadCString();
     int level = packet.ReadInt32();
-
-    DEBUG("%d %s",passport,password.c_str());
-
     Buffer sendpck;
-    sendpck.WriteInt32(DBHelper::GetInstance()->User_SetUserInfo(uid,passport,password,level));   // 返回注册结果
+    do{
+        auto new_userinfo_vec = DBHelper::GetInstance()->User_GetUserInfoBypassport_v1(passport);
+        auto userinfo_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        if (new_userinfo_vec.size() > 0)
+        {
+            sendpck.WriteInt32(Passport_Exist);
+            break;
+        }
+        if (userinfo_vec.size() <= 0)
+        {
+            sendpck.WriteInt32(Error);
+            break;
+        }
+        auto userinfo = userinfo_vec[0];
+        int s_uid = std::get<0>(userinfo);
+        int s_passport = std::get<1>(userinfo);
+        std::string s_password = std::get<2>(userinfo);
+        int s_qxlv = std::get<3>(userinfo);
+        if (s_qxlv > 1)
+        {
+            sendpck.WriteInt32(Quanxianbuzu);
+        }
+        DEBUG("%d %s",passport,password.c_str());
+        sendpck.WriteInt32(DBHelper::GetInstance()->User_SetUserInfo(uid,passport,password,level));   // 返回注册结果
+    }while(0);
     SendPacket(std::move(sendpck));
 
 }
@@ -131,6 +168,13 @@ void Session::Handler_RegisterNewPassport(ybs::share::util::Buffer& packet)
 
 void Session::Handler_AddServerInfo(ybs::share::util::Buffer& packet)
 {
+    enum status{
+        OK = 0,
+        User_Not_Found = 1,
+        Sql_Error = 2,
+        QuanXian_buzu = 3,
+        Server_Not_Found = 4,
+    };
     // 解包
     int user_id = packet.ReadInt32();
     int serverid = packet.ReadInt32();
@@ -142,42 +186,54 @@ void Session::Handler_AddServerInfo(ybs::share::util::Buffer& packet)
     std::string linux_pwd = packet.ReadCString();
 
     Buffer pck;
-    // 读数据库,检测是否有id冲突问题
-    switch (DBHelper::GetInstance()->Server_UIDANDSID_Is_Repeat(user_id,serverid))
-    {
-    case 1:
-        pck.WriteInt32(1);
-        pck.WriteString("服务器错误:sql查询失败");
-        break;
-    case 2:
-        pck.WriteInt32(2);
-        pck.WriteString("user id错误, 该user不存在");
-        break;
-        
-    case 3:
-        pck.WriteInt32(1);
-        pck.WriteString("server id重复,请更换server id");
-        break;
-            
-    default:
-        pck.WriteInt32(0);
-        if (!DBHelper::GetInstance()->Server_AddNewServerInfo(
-            user_id,
-            serverid,
-            server_ip,
-            server_port,
-            server_level,
-            flag_firewall,
-            linux_username,
-            linux_pwd
-        ))
+    do{
+
+        // 权限是否符合
+        auto result_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(user_id);
+        if (result_vec.size() <= 0)
         {
-            pck.WriteString("添加失败,请查看服务器日志");
+            pck.WriteInt32(User_Not_Found);
+            break;
         }
-        else
-            pck.WriteString("添加成功");
+        auto result = result_vec[0];
+        int s_qxlv = std::get<3>(result);
+        if (s_qxlv > 1)
+        {
+            pck.WriteInt32(QuanXian_buzu);
+            break;
+        }
         
-    }
+        // 读数据库,检测是否有id冲突问题
+        switch (DBHelper::GetInstance()->Server_UIDANDSID_Is_Repeat(user_id,serverid))
+        {
+        case 1:
+            pck.WriteInt32(Sql_Error);
+            break;
+        case 2:
+            pck.WriteInt32(User_Not_Found);
+            break;
+        case 3:
+            pck.WriteInt32(Server_Not_Found);
+            break;
+        default:
+            if (!DBHelper::GetInstance()->Server_AddNewServerInfo(
+                user_id,
+                serverid,
+                server_ip,
+                server_port,
+                server_level,
+                flag_firewall,
+                linux_username,
+                linux_pwd
+            ))
+            {
+                pck.WriteInt32(Sql_Error);
+            }
+            else
+                pck.WriteInt32(OK);
+            
+        }
+    }while(0);
 
     SendPacket(std::move(pck));
 }
@@ -221,26 +277,38 @@ void Session::Handler_UpdatePassword(Buffer& packet)
         Pwd_not_need_update = 2,
         Uid_not_found = 3,
         Sql_failed = 4,
-
+        Pwd_not_yizhi = 5,
     };
     int uid = packet.ReadInt32();
-    auto newpassword = packet.ReadCString();
+    auto oldpassword = packet.ReadCString();
+    auto newpassword1 = packet.ReadCString();
+    auto newpassword2 = packet.ReadCString();
 
     Buffer pck;
     do{
         // 查询旧密码
         auto result_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
-        if ( newpassword == std::get<2>(result_vec[0]))
-        {
-            pck.WriteInt32(Pwd_not_need_update);
-            break;
-        }
         if (result_vec.size() == 0)
         {
             pck.WriteInt32(Uid_not_found);
             break;
         }
-        auto res = DBHelper::GetInstance()->User_SetNewPassword(uid,newpassword,std::get<3>(result_vec[0]));
+        auto result = result_vec[0]; 
+        int s_uid = std::get<0>(result);
+        int s_passport = std::get<1>(result);
+        std::string s_pwd = std::get<2>(result);
+        int s_qxlv = std::get<3>(result);
+        if ( newpassword1 == s_pwd)
+        {
+            pck.WriteInt32(Pwd_not_need_update);
+            break;
+        }
+        if (newpassword1 != newpassword2)
+        {
+            pck.WriteInt32(Pwd_not_yizhi);
+            break;
+        }
+        auto res = DBHelper::GetInstance()->User_SetNewPassword(uid,newpassword1,s_qxlv);
         if (res == 1)
         {
             pck.WriteInt32(Sql_failed);
@@ -331,45 +399,95 @@ void Session::Handler_GetServerIPBySid(Buffer& packet)
 
 void Session::Handler_NginxTest(Buffer& packet)
 {
-    
+    enum status {
+        OK = 0,
+        Uid_not_found = 1,
+        Quanxianbuzu = 2,
+        Test_Not_Pass = 3,
+    };
     Buffer pck;
+    int uid = packet.ReadInt32();
     int sid = packet.ReadInt32();
     std::string config= packet.ReadCString();
+
     do{
-        if (config.find("server{") < config.size())
+        // 查询旧密码
+        auto result_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        if (result_vec.size() == 0)
         {
-            auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/nginx.sh 200101 1 \"%s\"",config.c_str()));
-            pck.WriteInt32(1);  // 找不到serverid没有结果
+            pck.WriteInt32(Uid_not_found);
             break;
         }
-        auto res_vec = DBHelper::GetInstance()->Server_GetAllServerInfo();
-        auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/nginx.sh 200101 1 \"%s\"",config.c_str()));
-        pck.WriteInt32(std::stoi(res));  // 找不到serverid没有结果
+        auto result = result_vec[0]; 
+        int s_uid = std::get<0>(result);
+        int s_passport = std::get<1>(result);
+        std::string s_pwd = std::get<2>(result);
+        int s_qxlv = std::get<3>(result);
+        if (s_qxlv > 1)
+        {
+            pck.WriteInt32(Quanxianbuzu);
+            break;
+        }
+        std::string cmd = fmt("./shell/nginx.sh 200101 1 \"%s\"",config.c_str());
+        INFO("cmd: %s",cmd.c_str());
+        auto res = ybs::share::util::cutil::executeCMD(cmd.c_str());
+        INFO("res: %s",res.c_str());
+        if ( std::stoi(res) == 1 )
+        {
+            pck.WriteInt32(OK);
+        }
+        else
+        {
+            pck.WriteInt32(Test_Not_Pass);
+        }
     }while(0);
-
     SendPacket(std::move(pck));
 }
 
 void Session::Handler_DelServer(Buffer& packet)
 {
+    enum status{
+        OK = 1,
+        User_Not_Found = 2,
+        QuanXian_buzu = 3,
+        Server_Not_Found = 4,
+        SQL_Error = 5,
+    };
     Buffer pck;
     int uid = packet.ReadInt32();
     int sid = packet.ReadInt32();
     do{
+        auto userinfo_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        if (userinfo_vec.size() <= 0)
+        {
+            pck.WriteInt32(User_Not_Found);
+            break;
+        }
+        auto userinfo = userinfo_vec[0];
+        int s_uid = std::get<0>(userinfo);
+        int s_passport = std::get<1>(userinfo);
+        std::string s_password = std::get<2>(userinfo);
+        int s_qxlv = std::get<3>(userinfo);
+        if (s_qxlv > 1)
+        {
+            pck.WriteInt32(QuanXian_buzu);
+            break;
+        }
+
         auto serverinfo = DBHelper::GetInstance()->Server_GetServerInfo(uid,sid);
         if (serverinfo.size() <= 0)
         {
-            pck.WriteInt32(2);
+            pck.WriteInt32(Server_Not_Found);
             break;
         }
         bool success = DBHelper::GetInstance()->Server_DelServerInfo(sid);     
         if (success)
         {
-            pck.WriteInt32(1);
+            pck.WriteInt32(OK);
         }   
         else
         {
-            pck.WriteInt32(3);
+            pck.WriteInt32(SQL_Error);
         }
     }while(0);
     SendPacket(std::move(pck));
@@ -389,5 +507,17 @@ void Session::Handler_DelUser(Buffer& packet)
     {
         pck.WriteInt32(0);
     }
+    SendPacket(std::move(pck));
+}
+
+void Session::Handler_ReloadNginx(Buffer& packet)
+{
+    Buffer pck;
+
+    std::string cmd = fmt("./shell/nginx.sh 200101 2");
+    INFO("command: %s",cmd.c_str());
+    auto res = ybs::share::util::cutil::executeCMD(cmd.c_str());
+    DEBUG("command result: %s",res.c_str());
+    pck.WriteInt32(std::stoi(res));
     SendPacket(std::move(pck));
 }

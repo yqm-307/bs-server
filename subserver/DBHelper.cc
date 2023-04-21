@@ -99,3 +99,18 @@ DBHelper::QueryResult<std::string> DBHelper::Server_GetRootpwd(int sid)
     runQuery(&result,fmt("select linux_pwd from bs_db.server_info_table where server_id=%d",sid));
     return result;
 }
+
+DBHelper::QueryResult<int,int,std::string,int> DBHelper::User_GetUserInfoByUid_v1(int uid)
+{
+    QueryResult<int,int,std::string,int> result;
+    if (!runQuery(&result,fmt("\
+        select user_id,passport,password,qx_level\
+        from bs_db.user_info_table\
+        where user_id=%d\
+        ",uid)))
+    {
+        ERROR("select failed!");
+    }
+    
+    return result;
+}

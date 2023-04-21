@@ -161,7 +161,7 @@ int DBHelper::User_SetUserInfo(int uid,int passport ,std::string & password,int 
         FATAL("使用不存在用户登录成功");
         return sql_error;
     }
-    if (std::get<0>(user[0]) != 1)
+    if (std::get<0>(user[0]) > 1)
     {
         return level_bad;
     }

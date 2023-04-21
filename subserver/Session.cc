@@ -93,18 +93,35 @@ void Session::Handler_ufw_portinfo(Buffer &buffer)
 
 void Session::Handler_ufw_close(Buffer &buffer)
 {
+    enum status {
+        OK = 0,
+        Quanxianbuzu = 1,
+        Failed = 2,
+    };
     Buffer pck;
     int uid = buffer.ReadInt32();
     do
     {
+        auto userinfo_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        auto userinfo = userinfo_vec[0];
+        int s_uid = std::get<0>(userinfo);
+        int s_passport = std::get<1>(userinfo);
+        std::string s_password = std::get<2>(userinfo);
+        int s_qxlv = std::get<3>(userinfo);
         auto pwd = DBHelper::GetInstance()->Server_GetRootpwd(uid);
+        if (s_qxlv > 2) // 超过2级不可以控制
+        {
+            INFO("level %d\n",s_qxlv);
+            pck.WriteInt32(Quanxianbuzu);
+            break;
+        }
         if (pwd.size() == 0)
         {
-            pck.WriteInt32(1);
+            pck.WriteInt32(Failed);
             break;
         }
         auto port = ybs::share::util::cutil::executeCMD(fmt("./shell/ufw.sh 2 %s", std::get<0>(pwd[0]).c_str()));
-        pck.WriteInt32(2);
+        pck.WriteInt32(OK);
         DEBUG("%s", port.c_str());
     } while (0);
 
@@ -113,18 +130,34 @@ void Session::Handler_ufw_close(Buffer &buffer)
 
 void Session::Handler_ufw_open(Buffer &buffer)
 {
+    enum status {
+        OK = 0,
+        Quanxianbuzu = 1,
+        Failed = 2,
+    };
     Buffer pck;
-        int uid = buffer.ReadInt32();
+    int uid = buffer.ReadInt32();
     do
     {
+        auto userinfo_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        auto userinfo = userinfo_vec[0];
+        int s_uid = std::get<0>(userinfo);
+        int s_passport = std::get<1>(userinfo);
+        std::string s_password = std::get<2>(userinfo);
+        int s_qxlv = std::get<3>(userinfo);
         auto pwd = DBHelper::GetInstance()->Server_GetRootpwd(uid);
+        if (s_qxlv > 2) // 超过2级不可以控制
+        {
+            pck.WriteInt32(Quanxianbuzu);
+            break;
+        }
         if (pwd.size() == 0)
         {
-            pck.WriteInt32(1);
+            pck.WriteInt32(Failed);
             break;
         }
         auto port = ybs::share::util::cutil::executeCMD(fmt("./shell/ufw.sh 3 %s", std::get<0>(pwd[0]).c_str()));
-        pck.WriteInt32(2);
+        pck.WriteInt32(OK);
         DEBUG("%s", port.c_str());
     } while (0);
 
@@ -133,41 +166,73 @@ void Session::Handler_ufw_open(Buffer &buffer)
 
 void Session::Handler_addport(Buffer &buffer)
 {
+    enum status {
+        OK = 0,
+        Quanxianbuzu = 1,
+        Failed = 2,
+    };
     Buffer pck;
     int uid = buffer.ReadInt32();
     int port = buffer.ReadInt32();
 
     do
     {
+        auto userinfo_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        auto userinfo = userinfo_vec[0];
+        int s_uid = std::get<0>(userinfo);
+        int s_passport = std::get<1>(userinfo);
+        std::string s_password = std::get<2>(userinfo);
+        int s_qxlv = std::get<3>(userinfo);
         auto pwd = DBHelper::GetInstance()->Server_GetRootpwd(uid);
+        if (s_qxlv > 2) // 超过2级不可以控制
+        {
+            pck.WriteInt32(Quanxianbuzu);
+            break;
+        }
         if (pwd.size() == 0)
         {
-            pck.WriteInt32(1);
+            pck.WriteInt32(Failed);
         }
         auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/ufw.sh 5 %s %d", std::get<0>(pwd[0]).c_str(),port));
 
         DEBUG("%s", res.c_str());
-        pck.WriteInt32(2);
+        pck.WriteInt32(OK);
 
     } while (0);
     SendPacket(std::move(pck));
 }
 void Session::Handler_delport(Buffer &buffer)
 {
+    enum status {
+        OK = 0,
+        Quanxianbuzu = 1,
+        Failed = 2,
+    };
     Buffer pck;
     int uid = buffer.ReadInt32();
     int port = buffer.ReadInt32();
-        do
+    do
     {
+        auto userinfo_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        auto userinfo = userinfo_vec[0];
+        int s_uid = std::get<0>(userinfo);
+        int s_passport = std::get<1>(userinfo);
+        std::string s_password = std::get<2>(userinfo);
+        int s_qxlv = std::get<3>(userinfo);
         auto pwd = DBHelper::GetInstance()->Server_GetRootpwd(uid);
+        if (s_qxlv > 2) // 超过2级不可以控制
+        {
+            pck.WriteInt32(Quanxianbuzu);
+            break;
+        }
         if (pwd.size() == 0)
         {
-            pck.WriteInt32(1);
+            pck.WriteInt32(Failed);
         }
         auto res = ybs::share::util::cutil::executeCMD(fmt("./shell/ufw.sh 6 %s %d",std::get<0>(pwd[0]).c_str(), port));
 
         DEBUG("%s", res.c_str());
-        pck.WriteInt32(2);
+        pck.WriteInt32(OK);
     } while (0);
     SendPacket(std::move(pck));
 }
