@@ -40,22 +40,22 @@ ufw_close_port()
 }
 
 
-if (( $1 == '1' ));     # 是否打开
+if [ $1 -eq 1 ];     # 是否打开
 then
     get_ufw_open_status 
-elif (( $1 == '2' ));   # 关闭防火墙
+elif [ $1 -eq 2 ];   # 关闭防火墙
 then
     close_ufw
-elif (( $1 == '3' ));   # 打开防火墙
+elif [ $1 -eq 3 ];   # 打开防火墙
 then
     open_ufw    
-elif (( $1 == '4' ));   # 获取打开的端口
+elif [ $1 -eq 4 ];   # 获取打开的端口
 then
     get_ufw_open_port
-elif (( $1 == '5' ));   # 打开端口
+elif [ $1 -eq 5 ];   # 打开端口
 then
     ufw_open_port $3
-elif (( $1 == '6' ));   # 关闭端口
+elif [ $1 -eq 6 ];   # 关闭端口
 then
     ufw_close_port $3
 fi

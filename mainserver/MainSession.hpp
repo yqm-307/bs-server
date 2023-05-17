@@ -70,6 +70,8 @@ private:
     void Handler_DelUser(Buffer& packet);
     // 加载nginx配置
     void Handler_ReloadNginx(Buffer& packet);
+    // 是否有权限
+    void Handler_HasQuanxian(Buffer& packet);
 private:
     int32_t m_session_id;
     OnCloseHandler  m_closed_handler;

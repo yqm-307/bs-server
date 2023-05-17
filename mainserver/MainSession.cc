@@ -28,6 +28,7 @@ Session::Session(boost::asio::io_context&ioc,boost::asio::ip::tcp::socket&& sock
             Y_SESSION_HANDLER(3008,Handler_NginxTest),              // nginx config test
             Y_SESSION_HANDLER(3009,Handler_DelServer),              // 删除服务器
             Y_SESSION_HANDLER(3010,Handler_ReloadNginx),            // 重新加载Nginx
+            Y_SESSION_HANDLER(3011,Handler_HasQuanxian),            // 是否有权限
         }
     );
 }
@@ -519,5 +520,39 @@ void Session::Handler_ReloadNginx(Buffer& packet)
     auto res = ybs::share::util::cutil::executeCMD(cmd.c_str());
     DEBUG("command result: %s",res.c_str());
     pck.WriteInt32(std::stoi(res));
+    SendPacket(std::move(pck));
+}
+
+void Session::Handler_HasQuanxian(Buffer& packet)
+{
+    enum status{
+        OK = 0,
+        Quanxianbuzu = 1,
+        User_NotFound = 2,
+    };
+    Buffer pck;
+    int uid = packet.ReadInt32();
+    int level = packet.ReadInt32();
+    
+    do{ 
+        auto userinfo_vec = DBHelper::GetInstance()->User_GetUserInfoByUid_v1(uid);
+        if (userinfo_vec.size() <= 0)
+        {
+            pck.WriteInt32(User_NotFound);
+            break;
+        }
+        auto userinfo = userinfo_vec[0];
+        int s_uid = std::get<0>(userinfo);
+        int s_passport = std::get<1>(userinfo);
+        std::string s_password = std::get<2>(userinfo);
+        int s_qxlv = std::get<3>(userinfo);
+        DEBUG("qxlv : %d\n",s_qxlv);
+        if (s_qxlv > level)
+        {
+            pck.WriteInt32(Quanxianbuzu);
+            break;
+        }
+        pck.WriteInt32(OK);
+    }while(0);
     SendPacket(std::move(pck));
 }
